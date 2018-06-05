@@ -17,3 +17,11 @@ func TestNewWithCustomAlgorithm(t *testing.T) {
 		t.Errorf("Expected the score to be 1, instead I got %f.", score)
 	}
 }
+
+func TestNoAlgorithm(t *testing.T) {
+	_, err := New([]string{})
+
+	if err != ErrNoAlgorithmDefined {
+		t.Errorf("Expected an error to be returned when no algorithm was specified.")
+	}
+}
