@@ -67,12 +67,14 @@ func BenchmarkBasicUsage(b *testing.B) {
 }
 
 func ExampleNew() {
-	input := "yourusername@hotmail.co"
-	domains := []string{"gmail.com", "hotmail.com", "yahoo.com"}
+	domains := []string{"gmail.com", "hotmail.com", "yahoo.com", "example.com"}
+
+	// Typo in the TLD
+	input := "yourusername@example.co"
 
 	alt, _ := SuggestAlternative(input, domains)
 	fmt.Printf("Perhaps you meant '%s' instead!", alt)
-	// Output: Perhaps you meant 'example@hotmail.com' instead!
+	// Output: Perhaps you meant 'yourusername@example.com' instead!
 }
 
 func SuggestAlternative(email string, domains []string) (string, float64) {
