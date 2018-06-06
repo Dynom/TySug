@@ -2,6 +2,8 @@ package finder
 
 import (
 	"testing"
+	"time"
+	"context"
 )
 
 func TestNewWithCustomAlgorithm(t *testing.T) {
@@ -25,6 +27,32 @@ func TestNoAlgorithm(t *testing.T) {
 
 	if err != ErrNoAlgorithmDefined {
 		t.Errorf("Expected an error to be returned when no algorithm was specified.")
+	}
+}
+
+func TestContextCancel(t *testing.T) {
+	sug, err := New([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"}, func(sug *TySug) {
+		sug.Alg = func(a, b string) float64 {
+			time.Sleep(10 * time.Millisecond)
+			return 1
+		}
+	})
+
+	if err != nil {
+		t.Errorf("Error when constructing TySug, %s", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Millisecond)
+	defer cancel()
+
+	timeStart := time.Now()
+	sug.FindCtx("john", ctx)
+	timeEnd := time.Now()
+
+	timeSpent := int(timeEnd.Sub(timeStart).Seconds() * 100)
+
+	if timeSpent != 1 {
+		t.Errorf("Expected the context to cancel after one iteration")
 	}
 }
 

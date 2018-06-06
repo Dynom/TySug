@@ -1,6 +1,9 @@
 package finder
 
-import "errors"
+import (
+	"errors"
+	"context"
+)
 
 type AlgWrapper func(a, b string) float64
 
@@ -40,6 +43,10 @@ func New(list []string, options ...Option) (*TySug, error) {
 
 // Find returns the best alternative and a score. A score of 1 means a perfect match
 func (t TySug) Find(input string) (string, float64) {
+	return t.FindCtx(input, context.Background())
+}
+
+func (t TySug) FindCtx(input string, ctx context.Context) (string, float64) {
 
 	// Exact matches
 	if _, exists := t.referenceMap[input]; exists {
@@ -48,7 +55,12 @@ func (t TySug) Find(input string) (string, float64) {
 
 	var hs float64
 	var best string
-	for ref := range t.reference {
+	for _, ref := range t.reference {
+		select {
+		case <-ctx.Done():
+			return input, 0
+		default:
+		}
 
 		if d := t.Alg(input, ref); d > hs {
 			hs = d
