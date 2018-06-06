@@ -51,7 +51,7 @@ func TestContextCancel(t *testing.T) {
 	defer cancel()
 
 	timeStart := time.Now()
-	sug.FindCtx("john", ctx)
+	sug.FindCtx(ctx, "john")
 	timeEnd := time.Now()
 
 	timeSpent := int(timeEnd.Sub(timeStart).Seconds() * 100)

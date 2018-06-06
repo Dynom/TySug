@@ -41,10 +41,10 @@ func New(list []string, options ...Option) (*Scorer, error) {
 
 // Find returns the best alternative and a score. A score of 1 means a perfect match
 func (t Scorer) Find(input string) (string, float64) {
-	return t.FindCtx(input, context.Background())
+	return t.FindCtx(context.Background(), input)
 }
 
-func (t Scorer) FindCtx(input string, ctx context.Context) (string, float64) {
+func (t Scorer) FindCtx(ctx context.Context, input string) (string, float64) {
 
 	// Exact matches
 	if _, exists := t.referenceMap[input]; exists {
