@@ -1,15 +1,15 @@
 package finder
 
 import (
-	"errors"
 	"context"
+	"errors"
 )
 
 type AlgWrapper func(a, b string) float64
 
-type TySug struct {
+type Scorer struct {
 	referenceMap map[string]struct{}
-	reference []string
+	reference    []string
 	Alg          AlgWrapper
 }
 
@@ -17,11 +17,11 @@ var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
 
-// New creates a new instance of TySug. The order of the list is significant
-func New(list []string, options ...Option) (*TySug, error) {
-	i := &TySug{
+// New creates a new instance of Scorer. The order of the list is significant
+func New(list []string, options ...Option) (*Scorer, error) {
+	i := &Scorer{
 		referenceMap: make(map[string]struct{}, len(list)),
-		reference: list,
+		reference:    list,
 	}
 
 	for _, r := range list {
@@ -39,14 +39,12 @@ func New(list []string, options ...Option) (*TySug, error) {
 	return i, nil
 }
 
-
-
 // Find returns the best alternative and a score. A score of 1 means a perfect match
-func (t TySug) Find(input string) (string, float64) {
+func (t Scorer) Find(input string) (string, float64) {
 	return t.FindCtx(input, context.Background())
 }
 
-func (t TySug) FindCtx(input string, ctx context.Context) (string, float64) {
+func (t Scorer) FindCtx(input string, ctx context.Context) (string, float64) {
 
 	// Exact matches
 	if _, exists := t.referenceMap[input]; exists {
@@ -70,4 +68,3 @@ func (t TySug) FindCtx(input string, ctx context.Context) (string, float64) {
 
 	return best, hs
 }
-

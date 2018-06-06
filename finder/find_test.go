@@ -1,9 +1,9 @@
 package finder
 
 import (
+	"context"
 	"testing"
 	"time"
-	"context"
 )
 
 func TestNewWithCustomAlgorithm(t *testing.T) {
@@ -36,7 +36,7 @@ func TestNoInput(t *testing.T) {
 }
 
 func TestContextCancel(t *testing.T) {
-	sug, err := New([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"}, func(sug *TySug) {
+	sug, err := New([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"}, func(sug *Scorer) {
 		sug.Alg = func(a, b string) float64 {
 			time.Sleep(10 * time.Millisecond)
 			return 1
@@ -44,10 +44,10 @@ func TestContextCancel(t *testing.T) {
 	})
 
 	if err != nil {
-		t.Errorf("Error when constructing TySug, %s", err)
+		t.Errorf("Error when constructing Scorer, %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
 	defer cancel()
 
 	timeStart := time.Now()
@@ -63,17 +63,17 @@ func TestContextCancel(t *testing.T) {
 
 func BenchmarkSliceOrMap(b *testing.B) {
 	size := 50
-	var hashmap = make(map[int]int, size)
-	var list = make([]int,size)
+	var hashMap = make(map[int]int, size)
+	var list = make([]int, size)
 
 	for i := size - 1; i > 0; i-- {
-		hashmap[i] = i
+		hashMap[i] = i
 		list[i] = i
 	}
 
 	b.Run("Map", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, _ = hashmap[i]
+			_, _ = hashMap[i]
 		}
 	})
 	b.Run("List", func(b *testing.B) {

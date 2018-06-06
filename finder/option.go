@@ -1,8 +1,8 @@
 package finder
 
-type Option func(sug *TySug)
+type Option func(sug *Scorer)
 
-func OptExampleAlgorithm(sug *TySug) {
+func OptExampleAlgorithm(sug *Scorer) {
 	sug.Alg = exampleAlgorithm
 }
 
