@@ -5,22 +5,24 @@ import "errors"
 type AlgWrapper func(a, b string) float64
 
 type TySug struct {
-	reference map[string]struct{}
-	Alg       AlgWrapper
+	referenceMap map[string]struct{}
+	reference []string
+	Alg          AlgWrapper
 }
 
 var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
 
-// New creates a new instance of TySug
+// New creates a new instance of TySug. The order of the list is significant
 func New(list []string, options ...Option) (*TySug, error) {
 	i := &TySug{
-		reference: make(map[string]struct{}, len(list)),
+		referenceMap: make(map[string]struct{}, len(list)),
+		reference: list,
 	}
 
 	for _, r := range list {
-		i.reference[r] = struct{}{}
+		i.referenceMap[r] = struct{}{}
 	}
 
 	for _, o := range options {
@@ -40,7 +42,7 @@ func New(list []string, options ...Option) (*TySug, error) {
 func (t TySug) Find(input string) (string, float64) {
 
 	// Exact matches
-	if _, exists := t.reference[input]; exists {
+	if _, exists := t.referenceMap[input]; exists {
 		return input, 1
 	}
 
