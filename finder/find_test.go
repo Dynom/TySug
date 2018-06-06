@@ -30,6 +30,11 @@ func TestNoAlgorithm(t *testing.T) {
 	}
 }
 
+func TestNoInput(t *testing.T) {
+	sug, _ := New([]string{}, OptExampleAlgorithm)
+	sug.Find("")
+}
+
 func TestContextCancel(t *testing.T) {
 	sug, err := New([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"}, func(sug *TySug) {
 		sug.Alg = func(a, b string) float64 {
