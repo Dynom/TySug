@@ -1,10 +1,10 @@
 package TySug
 
 import (
-	"testing"
+	"fmt"
 	"math"
 	"strings"
-	"fmt"
+	"testing"
 )
 
 const floatTolerance = 0.000001
@@ -19,28 +19,45 @@ func TestNew(t *testing.T) {
 	}
 }
 
-
 func TestTestExactMatch(t *testing.T) {
-	sug, _ := New([]string{"foo", "example", "dissipation"})
-	input := "example"
-	match, score := sug.Find(input)
-
-	if match != input {
-		t.Errorf("Expected the input '%s' to equal the best match '%s'", input, match)
+	cases := []struct {
+		Input  string
+		Expect string
+	}{
+		{Input: "example", Expect: "example"},
+		{Input: "CaseSensitive", Expect: "CaseSensitive"},
 	}
 
-	if math.Abs(1-score) > floatTolerance {
-		t.Errorf("Expected a score of ~1.0, instead it is: %f", score)
+	for _, td := range cases {
+		sug, _ := New([]string{"foo", "example", "CaseSensitive", "cASEsENSITIVE"})
+		match, score := sug.Find(td.Input)
+
+		if match != td.Expect {
+			t.Errorf("Expected the input '%s' to result in '%s', however the best match is '%s'", td.Input, td.Expect, match)
+		}
+
+		if math.Abs(1-score) > floatTolerance {
+			t.Errorf("Expected a score of ~1.0, instead it is: %f", score)
+		}
 	}
 }
 
 func TestApproximateMatch(t *testing.T) {
-	reference := "example"
-	sug, _ := New([]string{"foo", reference, "dissipation"})
-	match, _ := sug.Find("exampel")
+	cases := []struct {
+		Input     string
+		Reference string
+	}{
+		{Input: "exampel", Reference: "example"},
+		{Input: "casesensitive", Reference: "CaseSensitive"},
+	}
 
-	if match != reference {
-		t.Errorf("Expected the input '%s' to equal the best match '%s'", reference, match)
+	for _, td := range cases {
+		sug, _ := New([]string{td.Reference})
+		match, _ := sug.Find(td.Input)
+
+		if match != td.Reference {
+			t.Errorf("Expected the input '%s' to result in '%s', however the best match '%s'", td.Input, td.Reference, match)
+		}
 	}
 }
 
@@ -89,7 +106,7 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
 	hostname := email[i+1:]
 
 	sug, _ := New(domains)
-	alternative, score := sug.Find(hostname)
+	alternative, score := sug.Find(strings.ToLower(hostname))
 
 	if score > 0.9 {
 		combined := localPart + "@" + alternative
