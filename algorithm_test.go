@@ -11,25 +11,16 @@ import (
 // Several algorithms to test with.
 var algorithms = map[string]finder.AlgWrapper{
 	"Ukkonen 1/1/1": func(a, b string) float64 {
-		result := float64(smetrics.Ukkonen(a, b, 1, 1, 1))
-
-		// Converting the scale to 0.0-1.0
-		return 1 - (result / float64(len(a)+len(b)))
+		return -1 * float64(smetrics.Ukkonen(a, b, 1, 1, 1))
 	},
 	"JaroWinkler .7/4": func(a, b string) float64 {
 		return smetrics.JaroWinkler(a, b, .7, 4)
 	},
 	"WagnerFischer 1/1/1": func(a, b string) float64 {
-		result := float64(smetrics.WagnerFischer(a, b, 1, 1, 1))
-
-		// Converting the scale to 0.0-1.0
-		return 1 - (result / float64(len(a)+len(b)))
+		return -1 * float64(smetrics.WagnerFischer(a, b, 1, 1, 1))
 	},
 	"Sift4": func(a, b string) float64 {
-		result := sift4.New().Distance(a, b)
-
-		// Converting the scale to 0.0-1.0
-		return 1 - (result / float64(len(a)+len(b)))
+		return -1 * sift4.New().Distance(a, b)
 	},
 }
 
@@ -52,6 +43,8 @@ var domains = []string{
 	"hotmail.nl", "ziggo.nl", "live.com",
 }
 
+// TestAlgorithms generates a result for the algorithms defined above. It never errors out, use -test.v to have it show
+// up in the go test output
 func TestAlgorithms(t *testing.T) {
 	testData := map[string][]string{
 		// Expected - []spelling mistakes
@@ -74,26 +67,16 @@ func TestAlgorithms(t *testing.T) {
 
 	for name, alg := range algorithms {
 		t.Run(name, func(t *testing.T) {
-			alg := alg
-			sug, _ := New(domains, func(sug *finder.Scorer) {
-				sug.Alg = alg
-			})
+			sug, _ := New(domains, finder.OptSetAlgorithm(alg))
 
 			// Running combination tests for each domain, against our reference list.
 			for expectedDomain, emailsToTest := range testData {
 				for _, domain := range emailsToTest {
 
-					// Anything above 0.9 is a pretty good indicator that it could be a typo,
-					// a lower score has a higher chance of being a false-positive
 					bestMatch, score := sug.Find(domain)
 					if bestMatch != expectedDomain {
 						t.Logf("Related score: %f", score)
-						t.Errorf("Expected '%s' to result in '%s'. Instead I got: '%s'.", domain, expectedDomain, bestMatch)
-					}
-
-					// Because of the scale conversions we'll test for a slightly lower score
-					if score < 0.85 {
-						t.Errorf("Expected a ranking of 0.9 or greater, instead I got: %f for input '%s' (match: '%s').", score, domain, bestMatch)
+						t.Logf("Expected '%s' to result in '%s'. Instead I got: '%s'.", domain, expectedDomain, bestMatch)
 					}
 				}
 			}

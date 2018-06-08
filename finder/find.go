@@ -3,6 +3,7 @@ package finder
 import (
 	"context"
 	"errors"
+	"math"
 )
 
 type AlgWrapper func(a, b string) float64
@@ -51,7 +52,7 @@ func (t Scorer) FindCtx(ctx context.Context, input string) (string, float64) {
 		return input, 1
 	}
 
-	var hs float64
+	var hs = math.Inf(-1)
 	var best string
 	for _, ref := range t.reference {
 		select {

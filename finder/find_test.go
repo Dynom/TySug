@@ -6,8 +6,40 @@ import (
 	"time"
 )
 
+func exampleAlgorithm(a, b string) float64 {
+	if len(a) == 0 || len(b) == 0 {
+		return 0
+	}
+
+	if a[0] == b[0] {
+		return 1
+	}
+
+	return 0
+}
+
+func TestOptExampleAlgorithm(t *testing.T) {
+	alg := exampleAlgorithm
+
+	if s := alg("", "apple juice"); s != 0 {
+		t.Errorf("Expected the example algorithm to return 0 when an argument is empty.")
+	}
+
+	if s := alg("apple juice", ""); s != 0 {
+		t.Errorf("Expected the example algorithm to return 0 when an argument is empty.")
+	}
+
+	if s := alg("apple", "juice"); s != 0 {
+		t.Errorf("Expected the example algorithm to return 0 when the values don't match.")
+	}
+
+	if s := alg("tree", "trie"); s != 1 {
+		t.Errorf("Expected the example algorithm to return 1 when the first letters match.")
+	}
+}
+
 func TestNewWithCustomAlgorithm(t *testing.T) {
-	sug, _ := New([]string{"b"}, OptExampleAlgorithm)
+	sug, _ := New([]string{"b"}, OptSetAlgorithm(exampleAlgorithm))
 
 	var score float64
 
@@ -31,7 +63,7 @@ func TestNoAlgorithm(t *testing.T) {
 }
 
 func TestNoInput(t *testing.T) {
-	sug, _ := New([]string{}, OptExampleAlgorithm)
+	sug, _ := New([]string{}, OptSetAlgorithm(exampleAlgorithm))
 	sug.Find("")
 }
 

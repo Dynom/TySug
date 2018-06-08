@@ -2,22 +2,14 @@ package finder
 
 import "testing"
 
-func TestOptExampleAlgorithm(t *testing.T) {
-	alg := exampleAlgorithm
-
-	if s := alg("", "apple juice"); s != 0 {
-		t.Errorf("Expected the example algorithm to return 0 when an argument is empty.")
+func TestSetAlgorithm(t *testing.T) {
+	veryPositiveAlg := func(a, b string) float64 {
+		return 1
 	}
 
-	if s := alg("apple juice", ""); s != 0 {
-		t.Errorf("Expected the example algorithm to return 0 when an argument is empty.")
-	}
+	sug, err := New([]string{}, OptSetAlgorithm(veryPositiveAlg))
 
-	if s := alg("apple", "juice"); s != 0 {
-		t.Errorf("Expected the example algorithm to return 0 when the values don't match.")
-	}
-
-	if s := alg("tree", "trie"); s != 1 {
-		t.Errorf("Expected the example algorithm to return 1 when the first letters match.")
+	if sug.Alg == nil || err == ErrNoAlgorithmDefined {
+		t.Errorf("Expected the algorithm to be set")
 	}
 }
