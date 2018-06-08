@@ -105,7 +105,7 @@ func BenchmarkSliceOrMap(b *testing.B) {
 
 	b.Run("Map", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, _ = hashMap[i]
+			_ = hashMap[i]
 		}
 	})
 	b.Run("List", func(b *testing.B) {
