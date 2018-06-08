@@ -45,6 +45,7 @@ func (t Scorer) Find(input string) (string, float64) {
 	return t.FindCtx(context.Background(), input)
 }
 
+// FindCtx is the same as Find, with context support
 func (t Scorer) FindCtx(ctx context.Context, input string) (string, float64) {
 
 	// Exact matches
