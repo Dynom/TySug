@@ -1,6 +1,8 @@
 # TySug
 TySug is both a library and a webservice for suggesting alternatives.
 
+[![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug)
+
 ## As a webservice
 @todo
 
