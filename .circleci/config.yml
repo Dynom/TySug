@@ -1,0 +1,22 @@
+# Golang CircleCI 2.0 configuration file 
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version
+      - image: circleci/golang:latest
+
+    working_directory: /go/src/github.com/Dynom/TySug
+    steps:
+      - checkout
+
+      # specify any bash command here prefixed with `run: `
+      - run: go version
+      - run: for p in GOPATH GOBIN GOROOT; do echo "${p} ${!p}"; done
+      - run: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      - run: dep ensure -v -vendor-only
+      - run: go get -v -t -d ./...
+      - run: go get -u github.com/alecthomas/gometalinter && gometalinter -i
+      - run: gometalinter -t -D gotype -D errcheck --vendor --cyclo-over=10 --deadline=10m --enable=testify --enable=test --enable=gofmt --enable=unused -e "should have"  ./...
+      - run: go test -test.v -test.cover ./...
