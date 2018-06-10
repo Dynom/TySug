@@ -1,4 +1,4 @@
-package TySug
+package main_test
 
 import (
 	"testing"
@@ -67,7 +67,7 @@ func TestAlgorithms(t *testing.T) {
 
 	for name, alg := range algorithms {
 		t.Run(name, func(t *testing.T) {
-			sug, _ := New(domains, finder.OptSetAlgorithm(alg))
+			sug, _ := finder.New(domains, finder.OptSetAlgorithm(alg))
 
 			// Running combination tests for each domain, against our reference list.
 			for expectedDomain, emailsToTest := range testData {

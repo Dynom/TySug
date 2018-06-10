@@ -1,4 +1,4 @@
-package TySug
+package main
 
 import (
 	"fmt"

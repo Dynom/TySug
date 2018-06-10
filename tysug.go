@@ -1,4 +1,4 @@
-package TySug
+package main
 
 import (
 	"github.com/Dynom/TySug/finder"
