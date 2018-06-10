@@ -9,8 +9,9 @@ import (
 	"io"
 	"io/ioutil"
 
+	"errors"
+
 	"github.com/Dynom/TySug/server/service"
-	"github.com/pkg/errors"
 	"github.com/rs/cors"
 )
 
@@ -31,7 +32,7 @@ type response struct {
 	Score  float64 `json:"score"`
 }
 
-func getRequestFromHttpRequest(r *http.Request) (request, error) {
+func getRequestFromHTTPRequest(r *http.Request) (request, error) {
 	var req request
 
 	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBodySize))
@@ -51,14 +52,13 @@ func getRequestFromHttpRequest(r *http.Request) (request, error) {
 }
 
 type TySugServer struct {
-	server http.Server
+	server *http.Server
 }
 
-func (tss TySugServer) ListenOnAndServe(addr string) error {
-	s := tss.server
-	s.Addr = addr
+func (tss *TySugServer) ListenOnAndServe(addr string) error {
+	tss.server.Addr = addr
 
-	return s.ListenAndServe()
+	return tss.server.ListenAndServe()
 }
 
 func NewHTTP(tysug service.Domain, mux *http.ServeMux) TySugServer {
@@ -71,7 +71,7 @@ func NewHTTP(tysug service.Domain, mux *http.ServeMux) TySugServer {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		req, err := getRequestFromHttpRequest(r)
+		req, err := getRequestFromHTTPRequest(r)
 		if err != nil {
 			w.Write([]byte(err.Error()))
 			w.WriteHeader(400)
@@ -91,7 +91,7 @@ func NewHTTP(tysug service.Domain, mux *http.ServeMux) TySugServer {
 		w.Write(response)
 	})
 
-	server := http.Server{
+	server := &http.Server{
 		//Addr:              "0.0.0.0:1337",
 		ReadHeaderTimeout: 2 * time.Second,
 		ReadTimeout:       10 * time.Second,
