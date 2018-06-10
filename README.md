@@ -1,5 +1,7 @@
 # TySug
-TySug is both a library and a webservice for suggesting alternatives.
+TySug is both a library and a webservice for suggesting alternatives. The goal is to provide an extensible application 
+that helps with finding possible spelling errors. You can use it out-of-the-box as a webservice or as a set of packages 
+to build your own application.
 
 [![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug)
 
@@ -11,15 +13,17 @@ You can use the various components that make TySug individually or as a whole.
 
 ### Example
 ```go
-// Note: The arguments are case-sensitive. Normalize the data to avoid possible problems 
 referenceList := []string{"example", "amplifier", "ample"}
-ts := tysug.New(referenceList)
+ts := finder.New(referenceList, finder.OptSetAlgorithm(myAlgorithm))
 
 alt, score := ts.Find("exampel")
 // alt   = example
 // score = 0.9714285714285714 
 ```
-if you want to use a different algorithm, simply wrap your algorithm as an `Option` and pass it as argument to the Finder. You can find your inspiration in unit-tests / examples.
+
+### Using a different algorithm
+if you want to use a different algorithm, simply wrap your algorithm in a `finder.AlgWrapper` compatible type and pass 
+it as argument to the Finder. You can find inspiration in the unit-tests / examples.
 
 Possible considerations:
  - [Levenshtein](https://en.wikipedia.org/wiki/Levenshtein_distance)
@@ -35,12 +39,16 @@ Possible considerations:
 Sources:
  - https://www.joyofdata.de/blog/comparison-of-string-distance-algorithms/
 
-# Adding your own algorithm
-When adding your own algorithm, do note that you'll need to handle the "confidence" element yourself. You can normalize to a similar 0-1 scale, however you might introduce a bias towards deletions if you naively take the longest string, e.g.:
+### Dealing with confidence
+When adding your own algorithm, you'll need to handle the "confidence" element yourself. By default TySug's finder will 
+handle it just fine, but depending on the scale the algorithm uses you'll need to either normalize the scale or deal 
+with the score. 
+
+_Note: Be careful not to introduce bias when converting scale_
 ```go
 var someAlgorithm finder.AlgWrapper = func(a, b string) float64 {
 
-    // Result is, in this instance, the amount of steps taken to achieve similarity
+    // Result is, in this instance, the amount of steps taken to achieve equality
     // Algorithms like Jaro produce a value between 0.0 and 1.0
     score := someAlgorithm.CalculateDistance(a, b)
     
@@ -52,14 +60,13 @@ var someAlgorithm finder.AlgWrapper = func(a, b string) float64 {
         ml = len(b)
     }
     
-    // Warning: this introduces a bias that might not be desirable!
-    // inputs of longer lengths get a favour over shorter ones, causing deletions to weigh less.
+    // This introduces a bias. Inputs of longer lengths get a slight favour over shorter ones, causing deletions to weigh less.
     return 1 - (score / float64(ml))
 }
 
 sug := tysug.New([]list, optSetAlgorithm(someAlgorithm))
 bestMatch, score := sug.Find(input)
-// The score might be 0.800 for a string of length 10, with 2 mutations
+// Here score might be 0.8 for a string of length 10, with 2 mutations
 ```
 
 Without converting the scale, you'll have no bias, however you need to deal with a range where closer to 0 means less changes:
@@ -70,7 +77,7 @@ return -1 * score
 
 # Examples
 ## Finding common e-mail domain typos
-To help people prevent submitting an incorrect e-mail address, one could try the following
+To help people prevent submitting an incorrect e-mail address, one could try the following:
 
 ```go
 func SuggestAlternative(email string, domains []string) (string, float64) {
@@ -95,3 +102,16 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
     return email, score
 }
 ```
+
+Do note that:
+ - The comparisons are done in a case-sensitive manner, so you probably want to normalize input and the 
+reference list.
+ - The reference list order is significant, the first of an equal score wins the election. Put more common words first
+ - Score is very dependant on the algorithm used, you'll want to tweak it for your use-case
+ 
+ 
+# Wish list
+
+- Become keyboard aware -- _The keyboard layout could help with identifying more "logical" typing mistakes 
+  "beer" versus "beek" or "bee5". They might result with the same score, but "beer" might be more suitable with "bee5" 
+  as input_.
