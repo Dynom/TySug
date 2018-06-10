@@ -92,12 +92,11 @@ func NewHTTP(tysug service.Domain, mux *http.ServeMux) TySugServer {
 	})
 
 	server := &http.Server{
-		//Addr:              "0.0.0.0:1337",
 		ReadHeaderTimeout: 2 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,
 		IdleTimeout:       60 * time.Second,
-		MaxHeaderBytes:    1 << 20,
+		MaxHeaderBytes:    1 << 19,
 		Handler:           defaultHeaderHandler(c.Handler(mux)),
 	}
 
