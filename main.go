@@ -3,8 +3,11 @@ package main
 import (
 	"net/http"
 
+	"os"
+
 	"github.com/Dynom/TySug/server"
 	"github.com/Dynom/TySug/server/service"
+	"github.com/sirupsen/logrus"
 )
 
 var domains = []string{
@@ -27,7 +30,13 @@ var domains = []string{
 
 func main() {
 
-	d, err := service.NewDomainService(domains)
+	logger := logrus.New()
+	logger.Formatter = &logrus.JSONFormatter{}
+	logger.Info("Starting up...")
+	logger.Level = logrus.DebugLevel
+	logger.Out = os.Stdout
+
+	d, err := service.NewDomainService(domains, logger)
 	if err != nil {
 		panic(err)
 	}

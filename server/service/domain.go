@@ -2,10 +2,11 @@ package service
 
 import (
 	"github.com/Dynom/TySug/finder"
+	"github.com/sirupsen/logrus"
 	"github.com/xrash/smetrics"
 )
 
-func NewDomainService(list []string, options ...finder.Option) (Domain, error) {
+func NewDomainService(list []string, l *logrus.Logger, options ...finder.Option) (Domain, error) {
 	defaults := []finder.Option{finder.OptSetAlgorithm(algJaroWinkler())}
 
 	scorer, err := finder.New(list, append(defaults, options...)...)
@@ -15,15 +16,24 @@ func NewDomainService(list []string, options ...finder.Option) (Domain, error) {
 
 	return Domain{
 		scorer: scorer,
+		logger: l,
 	}, nil
 }
 
 type Domain struct {
 	scorer *finder.Scorer
+	logger *logrus.Logger
 }
 
 func (ds Domain) Rank(input string) (string, float64) {
-	return ds.scorer.Find(input)
+	suggestion, score := ds.scorer.Find(input)
+	ds.logger.WithFields(logrus.Fields{
+		"input":      input,
+		"suggestion": suggestion,
+		"score":      score,
+	}).Debug("Completed new ranking request")
+
+	return suggestion, score
 }
 
 func algJaroWinkler() finder.AlgWrapper {

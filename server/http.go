@@ -32,25 +32,6 @@ type response struct {
 	Score  float64 `json:"score"`
 }
 
-func getRequestFromHTTPRequest(r *http.Request) (request, error) {
-	var req request
-
-	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBodySize))
-	if err != nil {
-		if err == io.EOF {
-			return req, ErrMissingBody
-		}
-		return req, ErrInvalidRequest
-	}
-
-	err = json.Unmarshal(b, &req)
-	if err != nil {
-		return req, ErrInvalidRequestBody
-	}
-
-	return req, nil
-}
-
 type TySugServer struct {
 	server *http.Server
 }
@@ -61,8 +42,7 @@ func (tss *TySugServer) ListenOnAndServe(addr string) error {
 	return tss.server.ListenAndServe()
 }
 
-func NewHTTP(tysug service.Domain, mux *http.ServeMux) TySugServer {
-
+func NewHTTP(svc service.Interface, mux *http.ServeMux) TySugServer {
 	c := cors.New(cors.Options{
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
@@ -79,7 +59,7 @@ func NewHTTP(tysug service.Domain, mux *http.ServeMux) TySugServer {
 		}
 
 		var res response
-		res.Result, res.Score = tysug.Rank(req.Input)
+		res.Result, res.Score = svc.Rank(req.Input)
 
 		response, err := json.Marshal(res)
 		if err != nil {
@@ -116,4 +96,23 @@ func defaultHeaderHandler(h http.Handler) http.HandlerFunc {
 
 		h.ServeHTTP(w, req)
 	}
+}
+
+func getRequestFromHTTPRequest(r *http.Request) (request, error) {
+	var req request
+
+	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBodySize))
+	if err != nil {
+		if err == io.EOF {
+			return req, ErrMissingBody
+		}
+		return req, ErrInvalidRequest
+	}
+
+	err = json.Unmarshal(b, &req)
+	if err != nil {
+		return req, ErrInvalidRequestBody
+	}
+
+	return req, nil
 }
