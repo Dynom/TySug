@@ -1,17 +1,18 @@
 # TySug
-TySug is both a library and a webservice for suggesting alternatives. The goal is to provide an extensible application 
-that helps with finding possible spelling errors. You can use it out-of-the-box as a webservice or as a set of packages 
-to build your own application.
+[![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug) [![Go Report Card](https://goreportcard.com/badge/github.com/Dynom/TySug)](https://goreportcard.com/report/github.com/Dynom/TySug)
 
-[![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug)
+TySug is both a library and a webservice for suggesting alternatives.
 
-## As a webservice
-@todo
+As Webservice
+_`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
+```json
+{
+  "result": "gmail.com",
+  "score": 0.9777777777777777
+}
+```
 
-## As a library
-You can use the various components that make TySug individually or as a whole.
-
-### Example
+or as a library
 ```go
 referenceList := []string{"example", "amplifier", "ample"}
 ts := finder.New(referenceList, finder.OptSetAlgorithm(myAlgorithm))
@@ -20,6 +21,20 @@ alt, score := ts.Find("exampel")
 // alt   = example
 // score = 0.9714285714285714 
 ```
+
+The goal is to provide an extensible application that helps with finding possible spelling errors. You can use it 
+out-of-the-box as a library, a webservice or as a set of packages to build your own application.
+
+By default it uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) to calculate similarity.
+
+## As a webservice
+@todo
+
+## As a library
+You can use the various components that make TySug individually or as a whole.
+
+### Example
+
 
 ### Using a different algorithm
 if you want to use a different algorithm, simply wrap your algorithm in a `finder.AlgWrapper` compatible type and pass 

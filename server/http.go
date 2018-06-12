@@ -17,6 +17,7 @@ import (
 
 const maxBodySize = 1 << 20
 
+// Errors
 var (
 	ErrMissingBody        = errors.New("missing body")
 	ErrInvalidRequest     = errors.New("invalid request")
@@ -32,16 +33,19 @@ type response struct {
 	Score  float64 `json:"score"`
 }
 
+// TySugServer the HTTP server
 type TySugServer struct {
 	server *http.Server
 }
 
+// ListenOnAndServe allows to set the host:port URL late. It calls ListenAndServe()
 func (tss *TySugServer) ListenOnAndServe(addr string) error {
 	tss.server.Addr = addr
 
 	return tss.server.ListenAndServe()
 }
 
+// NewHTTP constructs a new TySugServer
 func NewHTTP(svc service.Interface, mux *http.ServeMux) TySugServer {
 	c := cors.New(cors.Options{
 		AllowCredentials: true,

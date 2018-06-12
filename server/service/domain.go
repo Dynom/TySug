@@ -6,25 +6,28 @@ import (
 	"github.com/xrash/smetrics"
 )
 
-func NewDomainService(list []string, l *logrus.Logger, options ...finder.Option) (Domain, error) {
+// NewDomainService creates a new service
+func NewDomainService(references []string, logger *logrus.Logger, options ...finder.Option) (Domain, error) {
 	defaults := []finder.Option{finder.OptSetAlgorithm(algJaroWinkler())}
 
-	scorer, err := finder.New(list, append(defaults, options...)...)
+	scorer, err := finder.New(references, append(defaults, options...)...)
 	if err != nil {
 		return Domain{}, err
 	}
 
 	return Domain{
 		scorer: scorer,
-		logger: l,
+		logger: logger,
 	}, nil
 }
 
+// Domain is the service type
 type Domain struct {
 	scorer *finder.Scorer
 	logger *logrus.Logger
 }
 
+// Rank returns the nearest reference
 func (ds Domain) Rank(input string) (string, float64) {
 	suggestion, score := ds.scorer.Find(input)
 	ds.logger.WithFields(logrus.Fields{

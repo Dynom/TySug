@@ -6,14 +6,17 @@ import (
 	"math"
 )
 
+// AlgWrapper the type to comply with to create your own algorithm
 type AlgWrapper func(a, b string) float64
 
+// Scorer is the type to find the nearest reference
 type Scorer struct {
 	referenceMap map[string]struct{}
 	reference    []string
 	Alg          AlgWrapper
 }
 
+// Errors
 var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
