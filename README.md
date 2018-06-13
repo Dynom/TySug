@@ -1,5 +1,7 @@
 # TySug
-[![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug) [![Go Report Card](https://goreportcard.com/badge/github.com/Dynom/TySug)](https://goreportcard.com/report/github.com/Dynom/TySug)
+[![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Dynom/TySug)](https://goreportcard.com/report/github.com/Dynom/TySug)
+[![GoDoc](https://godoc.org/github.com/Dynom/TySug?status.svg)](https://godoc.org/github.com/Dynom/TySug)
 
 TySug is both a library and a webservice for suggesting alternatives.
 
@@ -31,7 +33,7 @@ By default it uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Win
 @todo
 
 ## As a library
-You can use the various components that make TySug individually or as a whole.
+You can use the various components that make up TySug individually or as a whole.
 
 ### Example
 
@@ -86,13 +88,13 @@ bestMatch, score := sug.Find(input)
 
 Without converting the scale, you'll have no bias, however you need to deal with a range where closer to 0 means less changes:
 ```go
-// typically produces a range from (-1 * maximumInputLength) and 0
+// typically produces a range from (-1 * maximumInputLength) to 0
 return -1 * score
 ```
 
 # Examples
 ## Finding common e-mail domain typos
-To help people prevent submitting an incorrect e-mail address, one could try the following:
+To help people avoid submitting an incorrect e-mail address, one could try the following:
 
 ```go
 func SuggestAlternative(email string, domains []string) (string, float64) {
@@ -119,10 +121,10 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
 ```
 
 Do note that:
- - The comparisons are done in a case-sensitive manner, so you probably want to normalize input and the 
-reference list.
- - The reference list order is significant, the first of an equal score wins the election. Put more common words first
- - Score is very dependant on the algorithm used, you'll want to tweak it for your use-case
+ - The comparisons are done in a case-sensitive manner, so you probably want to normalize the input and the
+   reference list.
+ - The reference list order is significant, the first of an equal score wins the election. Put more common words first.
+ - Score is very dependant on the algorithm used, you'll want to tweak it for your use-case.
  
  
 # Wish list
