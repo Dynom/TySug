@@ -8,7 +8,7 @@ import (
 
 // NewDomain creates a new service
 func NewDomain(references []string, logger *logrus.Logger, options ...finder.Option) (Service, error) {
-	defaults := []finder.Option{finder.OptSetAlgorithm(algJaroWinkler())}
+	defaults := []finder.Option{finder.WithAlgorithm(algJaroWinkler())}
 
 	scorer, err := finder.New(references, append(defaults, options...)...)
 	if err != nil {

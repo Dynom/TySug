@@ -39,7 +39,7 @@ func TestOptExampleAlgorithm(t *testing.T) {
 }
 
 func TestNewWithCustomAlgorithm(t *testing.T) {
-	sug, _ := New([]string{"b"}, OptSetAlgorithm(exampleAlgorithm))
+	sug, _ := New([]string{"b"}, WithAlgorithm(exampleAlgorithm))
 
 	var score float64
 
@@ -63,7 +63,7 @@ func TestNoAlgorithm(t *testing.T) {
 }
 
 func TestNoInput(t *testing.T) {
-	sug, _ := New([]string{}, OptSetAlgorithm(exampleAlgorithm))
+	sug, _ := New([]string{}, WithAlgorithm(exampleAlgorithm))
 	sug.Find("")
 }
 

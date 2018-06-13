@@ -7,7 +7,7 @@ func TestSetAlgorithm(t *testing.T) {
 		return 1
 	}
 
-	sug, err := New([]string{}, OptSetAlgorithm(veryPositiveAlg))
+	sug, err := New([]string{}, WithAlgorithm(veryPositiveAlg))
 
 	if sug.Alg == nil || err == ErrNoAlgorithmDefined {
 		t.Errorf("Expected the algorithm to be set")
