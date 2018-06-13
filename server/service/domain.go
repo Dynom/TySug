@@ -23,13 +23,13 @@ func NewDomain(references []string, logger *logrus.Logger, options ...finder.Opt
 
 // Service is the service type
 type Service struct {
-	scorer *finder.Finder
+	finder *finder.Finder
 	logger *logrus.Logger
 }
 
-// Rank returns the nearest reference
-func (s Service) Rank(input string) (string, float64) {
-	suggestion, score := s.scorer.Find(input)
+// Find returns the nearest reference
+func (s Service) Find(input string) (string, float64) {
+	suggestion, score := s.finder.Find(input)
 	s.logger.WithFields(logrus.Fields{
 		"input":      input,
 		"suggestion": suggestion,

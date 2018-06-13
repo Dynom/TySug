@@ -101,7 +101,7 @@ func createRequestHandler(logger Logger, svc Service) http.HandlerFunc {
 		}
 
 		var res response
-		res.Result, res.Score = svc.Rank(req.Input)
+		res.Result, res.Score = svc.Find(req.Input)
 
 		response, err := json.Marshal(res)
 		if err != nil {
