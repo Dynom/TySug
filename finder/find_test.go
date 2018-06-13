@@ -68,7 +68,7 @@ func TestNoInput(t *testing.T) {
 }
 
 func TestContextCancel(t *testing.T) {
-	sug, err := New([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"}, func(sug *Scorer) {
+	sug, err := New([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"}, func(sug *Finder) {
 		sug.Alg = func(a, b string) float64 {
 			time.Sleep(10 * time.Millisecond)
 			return 1
@@ -76,7 +76,7 @@ func TestContextCancel(t *testing.T) {
 	})
 
 	if err != nil {
-		t.Errorf("Error when constructing Scorer, %s", err)
+		t.Errorf("Error when constructing Finder, %s", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)

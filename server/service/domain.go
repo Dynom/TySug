@@ -23,7 +23,7 @@ func NewDomain(references []string, logger *logrus.Logger, options ...finder.Opt
 
 // Service is the service type
 type Service struct {
-	scorer *finder.Scorer
+	scorer *finder.Finder
 	logger *logrus.Logger
 }
 
