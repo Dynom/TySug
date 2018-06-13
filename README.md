@@ -37,7 +37,7 @@ You can use the various components that make TySug individually or as a whole.
 
 
 ### Using a different algorithm
-if you want to use a different algorithm, simply wrap your algorithm in a `finder.AlgWrapper` compatible type and pass 
+if you want to use a different algorithm, simply wrap your algorithm in a `finder.Algorithm` compatible type and pass 
 it as argument to the Finder. You can find inspiration in the unit-tests / examples.
 
 Possible considerations:

@@ -4,8 +4,8 @@ package finder
 type Option func(sug *Scorer)
 
 // OptSetAlgorithm allows you to set any algorithm
-func OptSetAlgorithm(alg AlgWrapper) Option {
-	return func(s *Scorer) {
+func OptSetAlgorithm(alg Algorithm) Option {
+	return func(s *Finder) {
 		s.Alg = alg
 	}
 }

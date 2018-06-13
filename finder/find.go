@@ -6,14 +6,14 @@ import (
 	"math"
 )
 
-// AlgWrapper the type to comply with to create your own algorithm
-type AlgWrapper func(a, b string) float64
+// Algorithm the type to comply with to create your own algorithm
+type Algorithm func(a, b string) float64
 
-// Scorer is the type to find the nearest reference
-type Scorer struct {
+// Finder is the type to find the nearest reference
+type Finder struct {
 	referenceMap map[string]struct{}
 	reference    []string
-	Alg          AlgWrapper
+	Alg          Algorithm
 }
 
 // Errors

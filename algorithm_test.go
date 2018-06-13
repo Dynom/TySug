@@ -18,7 +18,7 @@ const (
 )
 
 // Several algorithms to test with.
-var algorithms = map[string]finder.AlgWrapper{
+var algorithms = map[string]finder.Algorithm{
 	"Ukkonen 1/1/1": func(a, b string) float64 {
 		return -1 * float64(smetrics.Ukkonen(a, b, 1, 1, 1))
 	},

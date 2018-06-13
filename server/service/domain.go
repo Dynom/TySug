@@ -39,7 +39,7 @@ func (s Service) Rank(input string) (string, float64) {
 	return suggestion, score
 }
 
-func algJaroWinkler() finder.AlgWrapper {
+func algJaroWinkler() finder.Algorithm {
 	return func(a, b string) float64 {
 		return smetrics.JaroWinkler(a, b, .7, 4)
 	}
