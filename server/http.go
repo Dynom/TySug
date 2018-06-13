@@ -11,7 +11,6 @@ import (
 
 	"errors"
 
-	"github.com/Dynom/TySug/server/service"
 	"github.com/rs/cors"
 )
 
@@ -60,7 +59,7 @@ func (tss *TySugServer) ListenOnAndServe(addr string) error {
 }
 
 // NewHTTP constructs a new TySugServer
-func NewHTTP(svc service.Interface, mux *http.ServeMux, options ...Option) TySugServer {
+func NewHTTP(svc Service, mux *http.ServeMux, options ...Option) TySugServer {
 	tySug := TySugServer{
 		Logger: defaultLogger{},
 	}
@@ -89,7 +88,7 @@ func NewHTTP(svc service.Interface, mux *http.ServeMux, options ...Option) TySug
 	return tySug
 }
 
-func createRequestHandler(logger Logger, svc service.Interface) http.HandlerFunc {
+func createRequestHandler(logger Logger, svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := getRequestFromHTTPRequest(r)
 		if err != nil {

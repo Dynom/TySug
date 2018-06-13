@@ -1,4 +1,4 @@
-package service
+package domain
 
 import (
 	"github.com/Dynom/TySug/finder"
@@ -6,31 +6,31 @@ import (
 	"github.com/xrash/smetrics"
 )
 
-// NewDomainService creates a new service
-func NewDomainService(references []string, logger *logrus.Logger, options ...finder.Option) (Domain, error) {
+// NewService creates a new service
+func NewService(references []string, logger *logrus.Logger, options ...finder.Option) (Service, error) {
 	defaults := []finder.Option{finder.OptSetAlgorithm(algJaroWinkler())}
 
 	scorer, err := finder.New(references, append(defaults, options...)...)
 	if err != nil {
-		return Domain{}, err
+		return Service{}, err
 	}
 
-	return Domain{
+	return Service{
 		scorer,
 		logger,
 	}, nil
 }
 
-// Domain is the service type
-type Domain struct {
+// Service is the service type
+type Service struct {
 	scorer *finder.Scorer
 	logger *logrus.Logger
 }
 
 // Rank returns the nearest reference
-func (ds Domain) Rank(input string) (string, float64) {
-	suggestion, score := ds.scorer.Find(input)
-	ds.logger.WithFields(logrus.Fields{
+func (s Service) Rank(input string) (string, float64) {
+	suggestion, score := s.scorer.Find(input)
+	s.logger.WithFields(logrus.Fields{
 		"input":      input,
 		"suggestion": suggestion,
 		"score":      score,
