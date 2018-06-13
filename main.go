@@ -42,7 +42,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	s := server.NewHTTP(d, mux)
+	s := server.NewHTTP(d, mux, server.WithLogger(logger))
 
 	err = s.ListenOnAndServe("0.0.0.0:1337")
 	if err != nil {
