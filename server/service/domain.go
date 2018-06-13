@@ -1,4 +1,4 @@
-package domain
+package service
 
 import (
 	"github.com/Dynom/TySug/finder"
@@ -6,8 +6,8 @@ import (
 	"github.com/xrash/smetrics"
 )
 
-// NewService creates a new service
-func NewService(references []string, logger *logrus.Logger, options ...finder.Option) (Service, error) {
+// NewDomain creates a new service
+func NewDomain(references []string, logger *logrus.Logger, options ...finder.Option) (Service, error) {
 	defaults := []finder.Option{finder.OptSetAlgorithm(algJaroWinkler())}
 
 	scorer, err := finder.New(references, append(defaults, options...)...)

@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/Dynom/TySug/server"
-	"github.com/Dynom/TySug/server/domain"
+	"github.com/Dynom/TySug/server/service"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,7 +36,7 @@ func main() {
 	logger.Level = logrus.DebugLevel
 	logger.Out = os.Stdout
 
-	ds, err := domain.NewService(domains, logger)
+	ds, err := service.NewDomain(domains, logger)
 	if err != nil {
 		panic(err)
 	}
