@@ -15,7 +15,7 @@ import (
 	"github.com/rs/cors"
 )
 
-const maxBodySize = 1 << 20
+const maxBodySize = 1 << 20 // 1Mb
 
 // Errors
 var (
@@ -53,8 +53,24 @@ func NewHTTP(svc service.Interface, mux *http.ServeMux) TySugServer {
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut},
 	})
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", createRequestHandler(svc))
 
+	server := &http.Server{
+		ReadHeaderTimeout: 2 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 19, // 512 kb
+		Handler:           defaultHeaderHandler(c.Handler(mux)),
+	}
+
+	return TySugServer{
+		server: server,
+	}
+}
+
+func createRequestHandler(svc service.Interface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := getRequestFromHTTPRequest(r)
 		if err != nil {
 			w.Write([]byte(err.Error()))
@@ -73,30 +89,27 @@ func NewHTTP(svc service.Interface, mux *http.ServeMux) TySugServer {
 		}
 
 		w.Write(response)
-	})
-
-	server := &http.Server{
-		ReadHeaderTimeout: 2 * time.Second,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       60 * time.Second,
-		MaxHeaderBytes:    1 << 19,
-		Handler:           defaultHeaderHandler(c.Handler(mux)),
-	}
-
-	return TySugServer{
-		server: server,
 	}
 }
 
 func defaultHeaderHandler(h http.Handler) http.HandlerFunc {
+
+	type kv struct {
+		Key   string
+		Value string
+	}
+
 	return func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-		w.Header().Set("Content-Security-Policy", "default-src 'none'")
-		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().Set("X-XSS-Protection", "1; mode=block")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "strict-origin")
+		for _, h := range []kv{
+			{Key: "Strict-Transport-Security", Value: "max-age=31536000; includeSubDomains"},
+			{Key: "Content-Security-Policy", Value: "default-src 'none'"},
+			{Key: "X-Frame-Options", Value: "DENY"},
+			{Key: "X-XSS-Protection", Value: "1; mode=block"},
+			{Key: "X-Content-Type-Options", Value: "nosniff"},
+			{Key: "Referrer-Policy", Value: "strict-origin"},
+		} {
+			w.Header().Set(h.Key, h.Value)
+		}
 
 		h.ServeHTTP(w, req)
 	}

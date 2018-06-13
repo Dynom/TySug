@@ -16,8 +16,8 @@ func NewDomainService(references []string, logger *logrus.Logger, options ...fin
 	}
 
 	return Domain{
-		scorer: scorer,
-		logger: logger,
+		scorer,
+		logger,
 	}, nil
 }
 
