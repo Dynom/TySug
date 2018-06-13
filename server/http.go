@@ -73,8 +73,8 @@ func createRequestHandler(svc service.Interface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := getRequestFromHTTPRequest(r)
 		if err != nil {
-			w.Write([]byte(err.Error()))
 			w.WriteHeader(400)
+			w.Write([]byte(err.Error()))
 			return
 		}
 
@@ -83,8 +83,8 @@ func createRequestHandler(svc service.Interface) http.HandlerFunc {
 
 		response, err := json.Marshal(res)
 		if err != nil {
-			w.Write([]byte("unable to marshal result, b00m"))
 			w.WriteHeader(500)
+			w.Write([]byte("unable to marshal result, b00m"))
 			return
 		}
 
