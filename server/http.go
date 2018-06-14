@@ -11,7 +11,11 @@ import (
 
 	"errors"
 
+	"context"
+
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/tomb.v2"
 )
 
 const maxBodySize = 1 << 20 // 1Mb
@@ -36,7 +40,7 @@ type response struct {
 type TySugServer struct {
 	server *http.Server
 
-	Logger Logger
+	Logger *logrus.Logger
 }
 
 // Option is a handy type used for configuration purposes
@@ -45,7 +49,11 @@ type Option func(*TySugServer)
 // WithLogger sets the logger to be used when encountering http-related errors.
 // Errors are written to the standard error output in most cases. Printing on the
 // standard output is reserved to extreme case where writing on stderr failed.
-func WithLogger(logger Logger) Option {
+func WithLogger(logger *logrus.Logger) Option {
+	if logger == nil {
+		logger = logrus.StandardLogger()
+	}
+
 	return func(server *TySugServer) {
 		server.Logger = logger
 	}
@@ -59,9 +67,9 @@ func (tss *TySugServer) ListenOnAndServe(addr string) error {
 }
 
 // NewHTTP constructs a new TySugServer
-func NewHTTP(svc Service, mux *http.ServeMux, options ...Option) TySugServer {
+func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugServer {
 	tySug := TySugServer{
-		Logger: defaultLogger{},
+		Logger: logrus.StandardLogger(),
 	}
 
 	for _, opt := range options {
@@ -71,10 +79,30 @@ func NewHTTP(svc Service, mux *http.ServeMux, options ...Option) TySugServer {
 	c := cors.New(cors.Options{
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
-		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut},
+		AllowedMethods:   []string{http.MethodPost},
 	})
 
-	mux.HandleFunc("/", createRequestHandler(tySug.Logger, svc))
+	mux.HandleFunc("/", http.NotFound)
+	mux.HandleFunc("/list/", func(w http.ResponseWriter, r *http.Request) {
+		name := r.URL.Path[6:]
+		if name == "" {
+			tySug.Logger.Info("no list name defined")
+			return
+		}
+
+		if !sr.HasServiceForList(name) {
+			tySug.Logger.Infof("list '%s' not defined", name)
+			return
+		}
+
+		svc := sr.GetServiceForList(name)
+		hf := createRequestHandler(
+			tySug.Logger,
+			svc,
+		)
+
+		hf(w, r)
+	})
 
 	tySug.server = &http.Server{
 		ReadHeaderTimeout: 2 * time.Second,
@@ -82,38 +110,63 @@ func NewHTTP(svc Service, mux *http.ServeMux, options ...Option) TySugServer {
 		WriteTimeout:      10 * time.Second,
 		IdleTimeout:       60 * time.Second,
 		MaxHeaderBytes:    1 << 19, // 512 kb
-		Handler:           defaultHeaderHandler(c.Handler(mux)),
+		Handler:           defaultHeaderHandler(c.Handler(createRequestIDHandler(mux))),
 	}
 
 	return tySug
 }
 
-func createRequestHandler(logger Logger, svc Service) http.HandlerFunc {
+func createRequestIDHandler(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "request_id", r.RemoteAddr)
+		h.ServeHTTP(w, r.WithContext(ctx))
+	}
+}
+
+func createRequestHandler(logger *logrus.Logger, svc Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		t, ctx := tomb.WithContext(r.Context())
+
 		req, err := getRequestFromHTTPRequest(r)
 		if err != nil {
 			w.WriteHeader(400)
 			_, writeErr := w.Write([]byte(err.Error()))
 			if writeErr != nil {
-				logger.Errorf("Errored while writing 400 error: %s (original error: %q)", writeErr, err)
+				logger.Errorf("Error while writing 400 error: %s (original error: %q)", writeErr, err)
 			}
 			return
 		}
 
 		var res response
-		res.Result, res.Score = svc.Find(req.Input)
+
+		start := time.Now()
+		res.Result, res.Score = svc.Find(ctx, req.Input)
+
+		logger.WithFields(logrus.Fields{
+			"input":       req.Input,
+			"suggestion":  res.Result,
+			"score":       res.Score,
+			"duration_µs": time.Since(start) / time.Microsecond,
+			"request_id":  ctx.Value("request_id"),
+		}).Debug("Completed new ranking request")
+
+		if !t.Alive() {
+			logger.WithFields(logrus.Fields{
+				"request_id": ctx.Value("request_id"),
+			}).Info("Request got cancelled")
+		}
 
 		response, err := json.Marshal(res)
 		if err != nil {
 			w.WriteHeader(500)
 			_, writeErr := w.Write([]byte("unable to marshal result, b00m"))
-			logger.Errorf("Errored while writing 400 error: %s (original marshaling error: %q)", writeErr, err)
+			logger.Errorf("Error while writing 500 error: %s (original marshaling error: %q)", writeErr, err)
 			return
 		}
 
 		_, err = w.Write(response)
 		if err != nil {
-			logger.Errorf("Errored while writing respones: %s", err)
+			logger.Errorf("Error while writing response: %s", err)
 		}
 	}
 }

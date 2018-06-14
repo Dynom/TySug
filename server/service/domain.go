@@ -1,6 +1,10 @@
 package service
 
 import (
+	"context"
+
+	"time"
+
 	"github.com/Dynom/TySug/finder"
 	"github.com/sirupsen/logrus"
 	"github.com/xrash/smetrics"
@@ -28,19 +32,18 @@ type Service struct {
 }
 
 // Find returns the nearest reference
-func (s Service) Find(input string) (string, float64) {
-	suggestion, score := s.finder.Find(input)
-	s.logger.WithFields(logrus.Fields{
-		"input":      input,
-		"suggestion": suggestion,
-		"score":      score,
-	}).Debug("Completed new ranking request")
-
+func (s Service) Find(ctx context.Context, input string) (string, float64) {
+	suggestion, score := s.finder.FindCtx(ctx, input)
 	return suggestion, score
+}
+
+func (s Service) Foo(input string, ctx context.Context) {
+
 }
 
 func algJaroWinkler() finder.Algorithm {
 	return func(a, b string) float64 {
+		time.Sleep(2 * time.Millisecond)
 		return smetrics.JaroWinkler(a, b, .7, 4)
 	}
 }
