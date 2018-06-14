@@ -1,17 +1,20 @@
 # TySug
-TySug is both a library and a webservice for suggesting alternatives. The goal is to provide an extensible application 
-that helps with finding possible spelling errors. You can use it out-of-the-box as a webservice or as a set of packages 
-to build your own application.
-
 [![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Dynom/TySug)](https://goreportcard.com/report/github.com/Dynom/TySug)
+[![GoDoc](https://godoc.org/github.com/Dynom/TySug?status.svg)](https://godoc.org/github.com/Dynom/TySug)
 
-## As a webservice
-@todo
+TySug is both a library and a webservice for suggesting alternatives.
 
-## As a library
-You can use the various components that make TySug individually or as a whole.
+As Webservice
+_`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
+```json
+{
+  "result": "gmail.com",
+  "score": 0.9777777777777777
+}
+```
 
-### Example
+or as a library
 ```go
 referenceList := []string{"example", "amplifier", "ample"}
 ts := finder.New(referenceList, finder.OptSetAlgorithm(myAlgorithm))
@@ -20,6 +23,20 @@ alt, score := ts.Find("exampel")
 // alt   = example
 // score = 0.9714285714285714 
 ```
+
+The goal is to provide an extensible application that helps with finding possible spelling errors. You can use it 
+out-of-the-box as a library, a webservice or as a set of packages to build your own application.
+
+By default it uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) to calculate similarity.
+
+## As a webservice
+@todo
+
+## As a library
+You can use the various components that make up TySug individually or as a whole.
+
+### Example
+
 
 ### Using a different algorithm
 if you want to use a different algorithm, simply wrap your algorithm in a `finder.AlgWrapper` compatible type and pass 
@@ -71,13 +88,13 @@ bestMatch, score := sug.Find(input)
 
 Without converting the scale, you'll have no bias, however you need to deal with a range where closer to 0 means less changes:
 ```go
-// typically produces a range from (-1 * maximumInputLength) and 0
+// typically produces a range from (-1 * maximumInputLength) to 0
 return -1 * score
 ```
 
 # Examples
 ## Finding common e-mail domain typos
-To help people prevent submitting an incorrect e-mail address, one could try the following:
+To help people avoid submitting an incorrect e-mail address, one could try the following:
 
 ```go
 func SuggestAlternative(email string, domains []string) (string, float64) {
@@ -104,10 +121,10 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
 ```
 
 Do note that:
- - The comparisons are done in a case-sensitive manner, so you probably want to normalize input and the 
-reference list.
- - The reference list order is significant, the first of an equal score wins the election. Put more common words first
- - Score is very dependant on the algorithm used, you'll want to tweak it for your use-case
+ - The comparisons are done in a case-sensitive manner, so you probably want to normalize the input and the
+   reference list.
+ - The reference list order is significant, the first of an equal score wins the election. Put more common words first.
+ - Score is very dependant on the algorithm used, you'll want to tweak it for your use-case.
  
  
 # Wish list

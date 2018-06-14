@@ -2,6 +2,18 @@
 
 
 [[projects]]
+  name = "github.com/rs/cors"
+  packages = ["."]
+  revision = "ca016a06a5753f8ba03029c0aa5e54afb1bf713f"
+  version = "v1.4.0"
+
+[[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
+
+[[projects]]
   branch = "master"
   name = "github.com/xrash/smetrics"
   packages = ["."]
@@ -13,9 +25,24 @@
   packages = ["."]
   revision = "8e89a8aebc1f2f8ab671b94921fe5472c9f99847"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "bff228c7b664c5fce602223a05fb708fd8654986"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0e52293147a2b06f2120c9ce403bc46fd97ba2bae6ebc1a41d9352b07fcec506"
+  inputs-digest = "b0fa26e61f7b8005d6f02ac7a7e4cb3dc1d8537858252e9ee67dd8eb140270a6"
   solver-name = "gps-cdcl"
   solver-version = 1
