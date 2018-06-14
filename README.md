@@ -2,6 +2,7 @@
 [![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Dynom/TySug)](https://goreportcard.com/report/github.com/Dynom/TySug)
 [![GoDoc](https://godoc.org/github.com/Dynom/TySug?status.svg)](https://godoc.org/github.com/Dynom/TySug)
+[![codecov](https://codecov.io/gh/Dynom/TySug/branch/master/graph/badge.svg)](https://codecov.io/gh/Dynom/TySug)
 
 TySug is both a library and a webservice for suggesting alternatives.
 
