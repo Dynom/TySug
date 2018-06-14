@@ -11,7 +11,6 @@ import (
 
 	"errors"
 
-	"github.com/Dynom/TySug/server/service"
 	"github.com/rs/cors"
 )
 
@@ -36,6 +35,20 @@ type response struct {
 // TySugServer the HTTP server
 type TySugServer struct {
 	server *http.Server
+
+	Logger Logger
+}
+
+// Option is a handy type used for configuration purposes
+type Option func(*TySugServer)
+
+// WithLogger sets the logger to be used when encountering http-related errors.
+// Errors are written to the standard error output in most cases. Printing on the
+// standard output is reserved to extreme case where writing on stderr failed.
+func WithLogger(logger Logger) Option {
+	return func(server *TySugServer) {
+		server.Logger = logger
+	}
 }
 
 // ListenOnAndServe allows to set the host:port URL late. It calls ListenAndServe()
@@ -46,16 +59,24 @@ func (tss *TySugServer) ListenOnAndServe(addr string) error {
 }
 
 // NewHTTP constructs a new TySugServer
-func NewHTTP(svc service.Interface, mux *http.ServeMux) TySugServer {
+func NewHTTP(svc Service, mux *http.ServeMux, options ...Option) TySugServer {
+	tySug := TySugServer{
+		Logger: defaultLogger{},
+	}
+
+	for _, opt := range options {
+		opt(&tySug)
+	}
+
 	c := cors.New(cors.Options{
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut},
 	})
 
-	mux.HandleFunc("/", createRequestHandler(svc))
+	mux.HandleFunc("/", createRequestHandler(tySug.Logger, svc))
 
-	server := &http.Server{
+	tySug.server = &http.Server{
 		ReadHeaderTimeout: 2 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,
@@ -64,31 +85,36 @@ func NewHTTP(svc service.Interface, mux *http.ServeMux) TySugServer {
 		Handler:           defaultHeaderHandler(c.Handler(mux)),
 	}
 
-	return TySugServer{
-		server: server,
-	}
+	return tySug
 }
 
-func createRequestHandler(svc service.Interface) http.HandlerFunc {
+func createRequestHandler(logger Logger, svc Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := getRequestFromHTTPRequest(r)
 		if err != nil {
-			w.Write([]byte(err.Error()))
 			w.WriteHeader(400)
+			_, writeErr := w.Write([]byte(err.Error()))
+			if writeErr != nil {
+				logger.Errorf("Errored while writing 400 error: %s (original error: %q)", writeErr, err)
+			}
 			return
 		}
 
 		var res response
-		res.Result, res.Score = svc.Rank(req.Input)
+		res.Result, res.Score = svc.Find(req.Input)
 
 		response, err := json.Marshal(res)
 		if err != nil {
-			w.Write([]byte("unable to marshal result, b00m"))
 			w.WriteHeader(500)
+			_, writeErr := w.Write([]byte("unable to marshal result, b00m"))
+			logger.Errorf("Errored while writing 400 error: %s (original marshaling error: %q)", writeErr, err)
 			return
 		}
 
-		w.Write(response)
+		_, err = w.Write(response)
+		if err != nil {
+			logger.Errorf("Errored while writing respones: %s", err)
+		}
 	}
 }
 

@@ -6,31 +6,31 @@ import (
 	"github.com/xrash/smetrics"
 )
 
-// NewDomainService creates a new service
-func NewDomainService(references []string, logger *logrus.Logger, options ...finder.Option) (Domain, error) {
-	defaults := []finder.Option{finder.OptSetAlgorithm(algJaroWinkler())}
+// NewDomain creates a new service
+func NewDomain(references []string, logger *logrus.Logger, options ...finder.Option) (Service, error) {
+	defaults := []finder.Option{finder.WithAlgorithm(algJaroWinkler())}
 
 	scorer, err := finder.New(references, append(defaults, options...)...)
 	if err != nil {
-		return Domain{}, err
+		return Service{}, err
 	}
 
-	return Domain{
+	return Service{
 		scorer,
 		logger,
 	}, nil
 }
 
-// Domain is the service type
-type Domain struct {
-	scorer *finder.Scorer
+// Service is the service type
+type Service struct {
+	finder *finder.Finder
 	logger *logrus.Logger
 }
 
-// Rank returns the nearest reference
-func (ds Domain) Rank(input string) (string, float64) {
-	suggestion, score := ds.scorer.Find(input)
-	ds.logger.WithFields(logrus.Fields{
+// Find returns the nearest reference
+func (s Service) Find(input string) (string, float64) {
+	suggestion, score := s.finder.Find(input)
+	s.logger.WithFields(logrus.Fields{
 		"input":      input,
 		"suggestion": suggestion,
 		"score":      score,
@@ -39,7 +39,7 @@ func (ds Domain) Rank(input string) (string, float64) {
 	return suggestion, score
 }
 
-func algJaroWinkler() finder.AlgWrapper {
+func algJaroWinkler() finder.Algorithm {
 	return func(a, b string) float64 {
 		return smetrics.JaroWinkler(a, b, .7, 4)
 	}
