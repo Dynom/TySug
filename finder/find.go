@@ -6,14 +6,14 @@ import (
 	"math"
 )
 
-// AlgWrapper the type to comply with to create your own algorithm
-type AlgWrapper func(a, b string) float64
+// Algorithm the type to comply with to create your own algorithm
+type Algorithm func(a, b string) float64
 
-// Scorer is the type to find the nearest reference
-type Scorer struct {
+// Finder is the type to find the nearest reference
+type Finder struct {
 	referenceMap map[string]struct{}
 	reference    []string
-	Alg          AlgWrapper
+	Alg          Algorithm
 }
 
 // Errors
@@ -21,9 +21,9 @@ var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
 
-// New creates a new instance of Scorer. The order of the list is significant
-func New(list []string, options ...Option) (*Scorer, error) {
-	i := &Scorer{
+// New creates a new instance of Finder. The order of the list is significant
+func New(list []string, options ...Option) (*Finder, error) {
+	i := &Finder{
 		referenceMap: make(map[string]struct{}, len(list)),
 		reference:    list,
 	}
@@ -44,12 +44,12 @@ func New(list []string, options ...Option) (*Scorer, error) {
 }
 
 // Find returns the best alternative and a score. A score of 1 means a perfect match
-func (t Scorer) Find(input string) (string, float64) {
+func (t Finder) Find(input string) (string, float64) {
 	return t.FindCtx(context.Background(), input)
 }
 
 // FindCtx is the same as Find, with context support
-func (t Scorer) FindCtx(ctx context.Context, input string) (string, float64) {
+func (t Finder) FindCtx(ctx context.Context, input string) (string, float64) {
 
 	// Exact matches
 	if _, exists := t.referenceMap[input]; exists {

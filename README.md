@@ -40,7 +40,7 @@ You can use the various components that make up TySug individually or as a whole
 
 
 ### Using a different algorithm
-if you want to use a different algorithm, simply wrap your algorithm in a `finder.AlgWrapper` compatible type and pass 
+if you want to use a different algorithm, simply wrap your algorithm in a `finder.Algorithm` compatible type and pass 
 it as argument to the Finder. You can find inspiration in the unit-tests / examples.
 
 Possible considerations:
@@ -82,7 +82,7 @@ var someAlgorithm finder.AlgWrapper = func(a, b string) float64 {
     return 1 - (score / float64(ml))
 }
 
-sug := tysug.New([]list, optSetAlgorithm(someAlgorithm))
+sug := finder.New([]list, finder.OptSetAlgorithm(someAlgorithm))
 bestMatch, score := sug.Find(input)
 // Here score might be 0.8 for a string of length 10, with 2 mutations
 ```
@@ -109,7 +109,7 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
     localPart := email[:i]
     hostname := email[i+1:]
     
-    sug, _ := tysug.New(domains)
+    sug, _ := finder.New(domains)
     alternative, score := sug.Find(hostname)
     
     if score > 0.9 {

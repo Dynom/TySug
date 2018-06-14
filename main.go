@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-
 	"os"
 
 	"github.com/Dynom/TySug/server"
@@ -36,13 +35,13 @@ func main() {
 	logger.Level = logrus.DebugLevel
 	logger.Out = os.Stdout
 
-	d, err := service.NewDomainService(domains, logger)
+	ds, err := service.NewDomain(domains, logger)
 	if err != nil {
 		panic(err)
 	}
 
 	mux := http.NewServeMux()
-	s := server.NewHTTP(d, mux)
+	s := server.NewHTTP(ds, mux, server.WithLogger(logger))
 
 	err = s.ListenOnAndServe("0.0.0.0:1337")
 	if err != nil {

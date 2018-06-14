@@ -18,7 +18,7 @@ const (
 )
 
 // Several algorithms to test with.
-var algorithms = map[string]finder.AlgWrapper{
+var algorithms = map[string]finder.Algorithm{
 	"Ukkonen 1/1/1": func(a, b string) float64 {
 		return -1 * float64(smetrics.Ukkonen(a, b, 1, 1, 1))
 	},
@@ -76,7 +76,7 @@ func TestAlgorithms(t *testing.T) {
 
 	for name, alg := range algorithms {
 		t.Run(name, func(t *testing.T) {
-			sug, _ := finder.New(domains, finder.OptSetAlgorithm(alg))
+			sug, _ := finder.New(domains, finder.WithAlgorithm(alg))
 
 			// Running combination tests for each domain, against our reference list.
 			for expectedDomain, emailsToTest := range testData {
@@ -95,7 +95,7 @@ func TestAlgorithms(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	expect := "example"
-	sug, _ := finder.New([]string{expect, "ample"}, finder.OptSetAlgorithm(algorithms[defaultTestAlgorithm]))
+	sug, _ := finder.New([]string{expect, "ample"}, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
 	alt, _ := sug.Find("exampel")
 
 	if alt != expect {
@@ -113,7 +113,7 @@ func TestTestExactMatch(t *testing.T) {
 	}
 
 	for _, td := range cases {
-		sug, _ := finder.New([]string{"foo", "example", "CaseSensitive", "cASEsENSITIVE"}, finder.OptSetAlgorithm(algorithms[defaultTestAlgorithm]))
+		sug, _ := finder.New([]string{"foo", "example", "CaseSensitive", "cASEsENSITIVE"}, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
 		match, score := sug.Find(td.Input)
 
 		if match != td.Expect {
@@ -136,7 +136,7 @@ func TestApproximateMatch(t *testing.T) {
 	}
 
 	for _, td := range cases {
-		sug, _ := finder.New([]string{td.Reference}, finder.OptSetAlgorithm(algorithms[defaultTestAlgorithm]))
+		sug, _ := finder.New([]string{td.Reference}, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
 		match, _ := sug.Find(td.Input)
 
 		if match != td.Reference {
@@ -146,7 +146,7 @@ func TestApproximateMatch(t *testing.T) {
 }
 
 func BenchmarkBasicUsage(b *testing.B) {
-	sug, _ := finder.New([]string{"foo", "abr", "butterfly"}, finder.OptSetAlgorithm(algorithms[defaultTestAlgorithm]))
+	sug, _ := finder.New([]string{"foo", "abr", "butterfly"}, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
 
 	b.Run("Direct match", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -189,7 +189,7 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
 	localPart := email[:i]
 	hostname := email[i+1:]
 
-	sug, _ := finder.New(domains, finder.OptSetAlgorithm(algorithms[defaultTestAlgorithm]))
+	sug, _ := finder.New(domains, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
 	alternative, score := sug.Find(strings.ToLower(hostname))
 
 	if score > 0.9 {
