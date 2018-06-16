@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 
-	"time"
-
 	"github.com/Dynom/TySug/finder"
 	"github.com/sirupsen/logrus"
 	"github.com/xrash/smetrics"
@@ -43,7 +41,6 @@ func (s Service) Foo(input string, ctx context.Context) {
 
 func algJaroWinkler() finder.Algorithm {
 	return func(a, b string) float64 {
-		time.Sleep(2 * time.Millisecond)
 		return smetrics.JaroWinkler(a, b, .7, 4)
 	}
 }
