@@ -18,15 +18,15 @@ import (
 type Config struct {
 	References map[string][]string `yaml:"references"`
 	Client     struct {
-		ReferencesMax  int `yaml:"referencesMax"`
+		//ReferencesMax  int `yaml:"referencesMax"`
 		InputLengthMax int `yaml:"inputLengthMax"`
-	}
+	} `yaml:"client"`
 	CORS struct {
 		AllowedOrigins []string `yaml:"allowedOrigins"`
-	}
+	} `yaml:"CORS"`
 	Server struct {
 		ListenOn string `yaml:"listenOn"`
-	}
+	} `yaml:"server"`
 }
 
 var config = Config{}
@@ -48,7 +48,9 @@ func main() {
 
 	sr := server.NewServiceRegistry()
 	for label, references := range config.References {
-		svc, err := service.NewDomain(references, logger)
+		var svc server.Service
+
+		svc, err = service.NewDomain(references, logger)
 		if err != nil {
 			panic(err)
 		}
@@ -56,8 +58,13 @@ func main() {
 		sr.Register(label, svc)
 	}
 
-	mux := http.NewServeMux()
-	s := server.NewHTTP(sr, mux, server.WithLogger(logger))
+	s := server.NewHTTP(
+		sr,
+		http.NewServeMux(),
+		server.WithLogger(logger),
+		server.WithCORS(config.CORS.AllowedOrigins),
+		server.WithInputLimitValidator(config.Client.InputLengthMax),
+	)
 
 	err = s.ListenOnAndServe(config.Server.ListenOn)
 	if err != nil {
