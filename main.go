@@ -32,8 +32,9 @@ type Config struct {
 var config = Config{}
 
 func main() {
+	var err error
 
-	config, err := buildConfig("config.yml")
+	config, err = buildConfig("config.yml")
 
 	if err != nil {
 		panic(err)

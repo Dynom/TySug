@@ -35,6 +35,10 @@ var (
 	ErrInvalidRequestBody = errors.New("invalid request body")
 )
 
+const (
+	CtxRequestID = iota
+)
+
 type request struct {
 	Input string `json:"input"`
 }
@@ -126,7 +130,7 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 
 func createRequestIDHandler(h http.Handler) http.HandlerFunc {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-	instanceId := rnd.Int31()
+	instanceID := rnd.Int31()
 
 	var requestCounter int
 	var lock = sync.Mutex{}
@@ -135,13 +139,13 @@ func createRequestIDHandler(h http.Handler) http.HandlerFunc {
 		lock.Lock()
 		requestCounter++
 		buf.Reset()
-		buf.WriteString(strconv.Itoa(int(instanceId)))
+		buf.WriteString(strconv.Itoa(int(instanceID)))
 		buf.WriteString("-")
 		buf.WriteString(strconv.Itoa(requestCounter))
-		reqId := buf.String()
+		requestID := buf.String()
 		lock.Unlock()
 
-		ctx := context.WithValue(r.Context(), "request_id", reqId)
+		ctx := context.WithValue(r.Context(), CtxRequestID, requestID)
 		h.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
@@ -170,12 +174,12 @@ func createRequestHandler(logger *logrus.Logger, svc Service) http.HandlerFunc {
 			"suggestion":  res.Result,
 			"score":       res.Score,
 			"duration_µs": time.Since(start) / time.Microsecond,
-			"request_id":  ctx.Value("request_id"),
+			"request_id":  ctx.Value(CtxRequestID),
 		}).Debug("Completed new ranking request")
 
 		if !t.Alive() {
 			logger.WithFields(logrus.Fields{
-				"request_id": ctx.Value("request_id"),
+				"request_id": ctx.Value(CtxRequestID),
 			}).Info("Request got cancelled")
 		}
 

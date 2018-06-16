@@ -35,10 +35,6 @@ func (s Service) Find(ctx context.Context, input string) (string, float64) {
 	return suggestion, score
 }
 
-func (s Service) Foo(input string, ctx context.Context) {
-
-}
-
 func algJaroWinkler() finder.Algorithm {
 	return func(a, b string) float64 {
 		return smetrics.JaroWinkler(a, b, .7, 4)
