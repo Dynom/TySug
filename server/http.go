@@ -13,6 +13,14 @@ import (
 
 	"context"
 
+	"math/rand"
+
+	"sync"
+
+	"strings"
+
+	"strconv"
+
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/tomb.v2"
@@ -117,8 +125,23 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 }
 
 func createRequestIDHandler(h http.Handler) http.HandlerFunc {
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	instanceId := rnd.Int31()
+
+	var requestCounter int
+	var lock = sync.Mutex{}
+	var buf = strings.Builder{}
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), "request_id", r.RemoteAddr)
+		lock.Lock()
+		requestCounter++
+		buf.Reset()
+		buf.WriteString(strconv.Itoa(int(instanceId)))
+		buf.WriteString("-")
+		buf.WriteString(strconv.Itoa(requestCounter))
+		reqId := buf.String()
+		lock.Unlock()
+
+		ctx := context.WithValue(r.Context(), "request_id", reqId)
 		h.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
