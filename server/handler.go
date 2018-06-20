@@ -35,7 +35,7 @@ func defaultHeaderHandler(h http.Handler) http.HandlerFunc {
 
 func createRequestIDHandler(h http.Handler) http.HandlerFunc {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-	instanceID := rnd.Int31()
+	instanceID := strconv.Itoa(int(rnd.Int31()))
 
 	var requestCounter int
 	var lock = sync.Mutex{}
@@ -44,7 +44,7 @@ func createRequestIDHandler(h http.Handler) http.HandlerFunc {
 		lock.Lock()
 		requestCounter++
 		buf.Reset()
-		buf.WriteString(strconv.Itoa(int(instanceID)))
+		buf.WriteString(instanceID)
 		buf.WriteString("-")
 		buf.WriteString(strconv.Itoa(requestCounter))
 		requestID := buf.String()
