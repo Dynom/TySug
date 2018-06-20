@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/Dynom/TySug/finder"
@@ -14,7 +13,6 @@ import (
 
 const (
 	defaultTestAlgorithm = `JaroWinkler .7/4`
-	floatTolerance       = 0.000001
 )
 
 // Several algorithms to test with.
@@ -22,7 +20,7 @@ var algorithms = map[string]finder.Algorithm{
 	"Ukkonen 1/1/1": func(a, b string) float64 {
 		return -1 * float64(smetrics.Ukkonen(a, b, 1, 1, 1))
 	},
-	"JaroWinkler .7/4": func(a, b string) float64 {
+	defaultTestAlgorithm: func(a, b string) float64 {
 		return smetrics.JaroWinkler(a, b, .7, 4)
 	},
 	"WagnerFischer 1/1/1": func(a, b string) float64 {
@@ -82,7 +80,7 @@ func TestAlgorithms(t *testing.T) {
 			for expectedDomain, emailsToTest := range testData {
 				for _, domain := range emailsToTest {
 
-					bestMatch, score := sug.Find(domain)
+					bestMatch, score, _ := sug.Find(domain)
 					if bestMatch != expectedDomain {
 						t.Logf("Related score: %f", score)
 						t.Logf("Expected '%s' to result in '%s'. Instead I got: '%s'.", domain, expectedDomain, bestMatch)
@@ -96,7 +94,7 @@ func TestAlgorithms(t *testing.T) {
 func TestNew(t *testing.T) {
 	expect := "example"
 	sug, _ := finder.New([]string{expect, "ample"}, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
-	alt, _ := sug.Find("exampel")
+	alt, _, _ := sug.Find("exampel")
 
 	if alt != expect {
 		t.Errorf("Expected '%s' to be '%s'.", alt, expect)
@@ -114,14 +112,14 @@ func TestTestExactMatch(t *testing.T) {
 
 	for _, td := range cases {
 		sug, _ := finder.New([]string{"foo", "example", "CaseSensitive", "cASEsENSITIVE"}, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
-		match, score := sug.Find(td.Input)
+		match, _, exact := sug.Find(td.Input)
 
 		if match != td.Expect {
 			t.Errorf("Expected the input '%s' to result in '%s', however the best match is '%s'", td.Input, td.Expect, match)
 		}
 
-		if math.Abs(1-score) > floatTolerance {
-			t.Errorf("Expected a score of ~1.0, instead it is: %f", score)
+		if !exact {
+			t.Errorf("Expected an exact match, instead I got %t", exact)
 		}
 	}
 }
@@ -137,7 +135,7 @@ func TestApproximateMatch(t *testing.T) {
 
 	for _, td := range cases {
 		sug, _ := finder.New([]string{td.Reference}, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
-		match, _ := sug.Find(td.Input)
+		match, _, _ := sug.Find(td.Input)
 
 		if match != td.Reference {
 			t.Errorf("Expected the input '%s' to result in '%s', however the best match '%s'", td.Input, td.Reference, match)
@@ -150,19 +148,19 @@ func BenchmarkBasicUsage(b *testing.B) {
 
 	b.Run("Direct match", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, _ = sug.Find("foo")
+			_, _, _ = sug.Find("foo")
 		}
 	})
 
 	b.Run("Non direct match, low score", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, _ = sug.Find("juice")
+			_, _, _ = sug.Find("juice")
 		}
 	})
 
 	b.Run("Non direct match, high score", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_, _ = sug.Find("butterfyl")
+			_, _, _ = sug.Find("butterfyl")
 		}
 	})
 }
@@ -190,9 +188,9 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
 	hostname := email[i+1:]
 
 	sug, _ := finder.New(domains, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
-	alternative, score := sug.Find(strings.ToLower(hostname))
+	alternative, score, exact := sug.Find(strings.ToLower(hostname))
 
-	if score > 0.9 {
+	if exact || score > 0.9 {
 		combined := localPart + "@" + alternative
 		return combined, score
 	}

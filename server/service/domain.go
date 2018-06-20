@@ -34,7 +34,7 @@ type Service struct {
 
 // Find returns the nearest reference
 func (s Service) Find(ctx context.Context, input string) (string, float64) {
-	suggestion, score := s.finder.FindCtx(ctx, input)
+	suggestion, score, _ := s.finder.FindCtx(ctx, input)
 	return suggestion, score
 }
 
