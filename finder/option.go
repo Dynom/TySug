@@ -9,3 +9,9 @@ func WithAlgorithm(alg Algorithm) Option {
 		s.Alg = alg
 	}
 }
+
+func WithLengthTolerance(t float64) Option {
+	return func(s *Finder) {
+		s.LengthTolerance = t
+	}
+}

@@ -11,9 +11,10 @@ type Algorithm func(a, b string) float64
 
 // Finder is the type to find the nearest reference
 type Finder struct {
-	referenceMap map[string]struct{}
-	reference    []string
-	Alg          Algorithm
+	referenceMap    map[string]struct{}
+	reference       []string
+	Alg             Algorithm
+	LengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
 }
 
 // Errors
@@ -56,13 +57,21 @@ func (t Finder) FindCtx(ctx context.Context, input string) (string, float64) {
 		return input, 1
 	}
 
+	inputLen := len(input)
+
 	var hs = math.Inf(-1)
-	var best string
+	var best = input
 	for _, ref := range t.reference {
 		select {
 		case <-ctx.Done():
-			return input, 0
+			return input, hs
 		default:
+		}
+
+		// Test if the input length is much fewer, making it an unlikely typo. The result is 20% of the length or at least
+		// 1 (due to math.Ceil)
+		if t.LengthTolerance != 0 && inputLen < len(ref)-int(math.Ceil(float64(inputLen)*t.LengthTolerance)) {
+			continue
 		}
 
 		if d := t.Alg(input, ref); d > hs {
