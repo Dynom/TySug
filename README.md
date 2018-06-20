@@ -110,24 +110,23 @@ To help people avoid submitting an incorrect e-mail address, one could try the f
 
 ```go
 func SuggestAlternative(email string, domains []string) (string, float64) {
-
     i := strings.LastIndex(email, "@")
     if i <= 0 || i >= len(email) {
         return email, 0
     }
-    
+
     // Extracting the local and domain parts
     localPart := email[:i]
     hostname := email[i+1:]
-    
+
     sug, _ := finder.New(domains)
-    alternative, score := sug.Find(hostname)
-    
-    if score > 0.9 {
+    alternative, score, exact := sug.Find(hostname)
+
+    if exact || score > 0.9 {
         combined := localPart + "@" + alternative
         return combined, score
     }
-    
+
     return email, score
 }
 ```
