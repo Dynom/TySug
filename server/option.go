@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 )
@@ -54,5 +55,12 @@ func WithInputLimitValidator(inputMax int) Option {
 
 			return nil
 		})
+	}
+}
+
+// WithGzipHandler adds a gzip handler to the server's handlers
+func WithGzipHandler() Option {
+	return func(server *TySugServer) {
+		server.handlers = append(server.handlers, gziphandler.GzipHandler)
 	}
 }

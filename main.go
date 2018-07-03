@@ -64,6 +64,7 @@ func main() {
 		server.WithLogger(logger),
 		server.WithCORS(config.CORS.AllowedOrigins),
 		server.WithInputLimitValidator(config.Client.InputLengthMax),
+		server.WithGzipHandler(),
 	)
 
 	err = s.ListenOnAndServe(config.Server.ListenOn)
