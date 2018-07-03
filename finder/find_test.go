@@ -42,15 +42,16 @@ func TestNewWithCustomAlgorithm(t *testing.T) {
 	sug, _ := New([]string{"b"}, WithAlgorithm(exampleAlgorithm))
 
 	var score float64
+	var exact bool
 
-	_, score = sug.Find("a")
-	if score != 0 {
-		t.Errorf("Expected the score to be 0, instead I got %f.", score)
+	_, score, exact = sug.Find("a")
+	if exact {
+		t.Errorf("Expected exact to be false, instead I got %t (the score is %f).", exact, score)
 	}
 
-	_, score = sug.Find("b")
-	if score != 1 {
-		t.Errorf("Expected the score to be 1, instead I got %f.", score)
+	_, score, exact = sug.Find("b")
+	if !exact {
+		t.Errorf("Expected exact to be true, instead I got %t (the score is %f).", exact, score)
 	}
 }
 

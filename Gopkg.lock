@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/NYTimes/gziphandler"
+  packages = ["."]
+  revision = "2600fb119af974220d3916a5916d6e31176aac1b"
+  version = "v1.0.1"
+
+[[projects]]
   name = "github.com/rs/cors"
   packages = ["."]
   revision = "ca016a06a5753f8ba03029c0aa5e54afb1bf713f"
@@ -33,6 +39,12 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  revision = "db08ff08e8622530d9ed3a0e8ac279f6d4c02196"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -40,9 +52,21 @@
   ]
   revision = "bff228c7b664c5fce602223a05fb708fd8654986"
 
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/tomb.v2"
+  packages = ["."]
+  revision = "d5d1b5820637886def9eef33e03a27a9f166942c"
+
+[[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b0fa26e61f7b8005d6f02ac7a7e4cb3dc1d8537858252e9ee67dd8eb140270a6"
+  inputs-digest = "4f6c6ebefba028f9350159e530ad9c3e7654005e0361f692eb04ec04af6bc7ec"
   solver-name = "gps-cdcl"
   solver-version = 1

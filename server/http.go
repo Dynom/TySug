@@ -11,7 +11,8 @@ import (
 
 	"errors"
 
-	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/tomb.v2"
 )
 
 const maxBodySize = 1 << 20 // 1Mb
@@ -23,32 +24,32 @@ var (
 	ErrInvalidRequestBody = errors.New("invalid request body")
 )
 
-type request struct {
+type contextKey int
+
+// Context value parameters
+const (
+	CtxRequestID contextKey = iota
+)
+
+type tySugRequest struct {
 	Input string `json:"input"`
 }
 
-type response struct {
+type tySugResponse struct {
 	Result string  `json:"result"`
 	Score  float64 `json:"score"`
 }
 
+// Validator is a type to validate a client request, returning a nil errors means all went well.
+type Validator func(TSRequest tySugRequest) error
+
 // TySugServer the HTTP server
 type TySugServer struct {
-	server *http.Server
+	server     *http.Server
+	handlers   []func(h http.Handler) http.Handler
+	validators []Validator
 
-	Logger Logger
-}
-
-// Option is a handy type used for configuration purposes
-type Option func(*TySugServer)
-
-// WithLogger sets the logger to be used when encountering http-related errors.
-// Errors are written to the standard error output in most cases. Printing on the
-// standard output is reserved to extreme case where writing on stderr failed.
-func WithLogger(logger Logger) Option {
-	return func(server *TySugServer) {
-		server.Logger = logger
-	}
+	Logger *logrus.Logger
 }
 
 // ListenOnAndServe allows to set the host:port URL late. It calls ListenAndServe()
@@ -59,22 +60,44 @@ func (tss *TySugServer) ListenOnAndServe(addr string) error {
 }
 
 // NewHTTP constructs a new TySugServer
-func NewHTTP(svc Service, mux *http.ServeMux, options ...Option) TySugServer {
+func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugServer {
 	tySug := TySugServer{
-		Logger: defaultLogger{},
+		Logger: logrus.StandardLogger(),
 	}
 
 	for _, opt := range options {
 		opt(&tySug)
 	}
 
-	c := cors.New(cors.Options{
-		AllowCredentials: true,
-		AllowedHeaders:   []string{"*"},
-		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut},
-	})
+	var handler http.Handler = defaultHeaderHandler(createRequestIDHandler(mux))
+	for _, h := range tySug.handlers {
+		handler = h(handler)
+	}
 
-	mux.HandleFunc("/", createRequestHandler(tySug.Logger, svc))
+	mux.HandleFunc("/", http.NotFound)
+	mux.HandleFunc("/list/", func(w http.ResponseWriter, r *http.Request) {
+		name := r.URL.Path[6:]
+		if name == "" {
+			tySug.Logger.Info("no list name defined")
+			w.WriteHeader(400)
+			return
+		}
+
+		if !sr.HasServiceForList(name) {
+			tySug.Logger.Infof("list '%s' not defined", name)
+			w.WriteHeader(404)
+			return
+		}
+
+		svc := sr.GetServiceForList(name)
+		hf := createRequestHandler(
+			tySug.Logger,
+			svc,
+			tySug.validators,
+		)
+
+		hf(w, r)
+	})
 
 	tySug.server = &http.Server{
 		ReadHeaderTimeout: 2 * time.Second,
@@ -82,67 +105,84 @@ func NewHTTP(svc Service, mux *http.ServeMux, options ...Option) TySugServer {
 		WriteTimeout:      10 * time.Second,
 		IdleTimeout:       60 * time.Second,
 		MaxHeaderBytes:    1 << 19, // 512 kb
-		Handler:           defaultHeaderHandler(c.Handler(mux)),
+		Handler:           handler,
 	}
 
 	return tySug
 }
 
-func createRequestHandler(logger Logger, svc Service) http.HandlerFunc {
+func createRequestHandler(logger *logrus.Logger, svc Service, validators []Validator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := getRequestFromHTTPRequest(r)
-		if err != nil {
+		t, ctx := tomb.WithContext(r.Context())
+
+		ctxLogger := logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value(CtxRequestID),
+		})
+
+		req, reqErr := getRequestFromHTTPRequest(r)
+		if reqErr != nil {
+			if reqErr == ErrInvalidRequestBody {
+				ctxLogger.Errorf("Missing or invalid request body.")
+			} else {
+				ctxLogger.Errorf("Unable to process HTTP request, %s.", reqErr)
+			}
+
 			w.WriteHeader(400)
-			_, writeErr := w.Write([]byte(err.Error()))
+			_, writeErr := w.Write([]byte(reqErr.Error()))
 			if writeErr != nil {
-				logger.Errorf("Errored while writing 400 error: %s (original error: %q)", writeErr, err)
+				ctxLogger.Errorf("Error while writing 400 error: %s (original error: %q)", writeErr, reqErr)
 			}
 			return
 		}
 
-		var res response
-		res.Result, res.Score = svc.Find(req.Input)
+		for _, v := range validators {
+			if vErr := v(req); vErr != nil {
+				ctxLogger.WithFields(logrus.Fields{
+					"error": vErr,
+				}).Error("Request validation failed")
+
+				w.WriteHeader(400)
+				_, writeErr := w.Write([]byte("Validation failed."))
+				if writeErr != nil {
+					ctxLogger.Errorf("Error while writing 400 error: %s", writeErr)
+				}
+				return
+			}
+		}
+
+		var res tySugResponse
+
+		start := time.Now()
+		res.Result, res.Score = svc.Find(ctx, req.Input)
+
+		ctxLogger.WithFields(logrus.Fields{
+			"input":       req.Input,
+			"suggestion":  res.Result,
+			"score":       res.Score,
+			"duration_µs": time.Since(start) / time.Microsecond,
+		}).Debug("Completed new ranking request")
+
+		if !t.Alive() {
+			ctxLogger.Info("Request got cancelled")
+		}
 
 		response, err := json.Marshal(res)
 		if err != nil {
 			w.WriteHeader(500)
 			_, writeErr := w.Write([]byte("unable to marshal result, b00m"))
-			logger.Errorf("Errored while writing 400 error: %s (original marshaling error: %q)", writeErr, err)
+			ctxLogger.Errorf("Error while writing 500 error: %s (original marshaling error: %q)", writeErr, err)
 			return
 		}
 
 		_, err = w.Write(response)
 		if err != nil {
-			logger.Errorf("Errored while writing respones: %s", err)
+			ctxLogger.Errorf("Error while writing response: %s", err)
 		}
 	}
 }
 
-func defaultHeaderHandler(h http.Handler) http.HandlerFunc {
-
-	type kv struct {
-		Key   string
-		Value string
-	}
-
-	return func(w http.ResponseWriter, req *http.Request) {
-		for _, h := range []kv{
-			{Key: "Strict-Transport-Security", Value: "max-age=31536000; includeSubDomains"},
-			{Key: "Content-Security-Policy", Value: "default-src 'none'"},
-			{Key: "X-Frame-Options", Value: "DENY"},
-			{Key: "X-XSS-Protection", Value: "1; mode=block"},
-			{Key: "X-Content-Type-Options", Value: "nosniff"},
-			{Key: "Referrer-Policy", Value: "strict-origin"},
-		} {
-			w.Header().Set(h.Key, h.Value)
-		}
-
-		h.ServeHTTP(w, req)
-	}
-}
-
-func getRequestFromHTTPRequest(r *http.Request) (request, error) {
-	var req request
+func getRequestFromHTTPRequest(r *http.Request) (tySugRequest, error) {
+	var req tySugRequest
 
 	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBodySize))
 	if err != nil {

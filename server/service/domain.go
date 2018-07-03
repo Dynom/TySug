@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/Dynom/TySug/finder"
 	"github.com/sirupsen/logrus"
 	"github.com/xrash/smetrics"
@@ -8,7 +10,10 @@ import (
 
 // NewDomain creates a new service
 func NewDomain(references []string, logger *logrus.Logger, options ...finder.Option) (Service, error) {
-	defaults := []finder.Option{finder.WithAlgorithm(algJaroWinkler())}
+	defaults := []finder.Option{
+		finder.WithAlgorithm(algJaroWinkler()),
+		finder.WithLengthTolerance(0.2),
+	}
 
 	scorer, err := finder.New(references, append(defaults, options...)...)
 	if err != nil {
@@ -28,14 +33,8 @@ type Service struct {
 }
 
 // Find returns the nearest reference
-func (s Service) Find(input string) (string, float64) {
-	suggestion, score := s.finder.Find(input)
-	s.logger.WithFields(logrus.Fields{
-		"input":      input,
-		"suggestion": suggestion,
-		"score":      score,
-	}).Debug("Completed new ranking request")
-
+func (s Service) Find(ctx context.Context, input string) (string, float64) {
+	suggestion, score, _ := s.finder.FindCtx(ctx, input)
 	return suggestion, score
 }
 

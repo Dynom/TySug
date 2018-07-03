@@ -9,3 +9,12 @@ func WithAlgorithm(alg Algorithm) Option {
 		s.Alg = alg
 	}
 }
+
+// WithLengthTolerance defines a percentage of length above we no longer consider a length difference a typo.
+// A value of 0.2 specifies a tolerance of at most ~20% difference in size, with a minimum of 1 character.
+// A value of 0 (the default) disables this feature.
+func WithLengthTolerance(t float64) Option {
+	return func(s *Finder) {
+		s.LengthTolerance = t
+	}
+}

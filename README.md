@@ -31,7 +31,18 @@ out-of-the-box as a library, a webservice or as a set of packages to build your 
 By default it uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) to calculate similarity.
 
 ## As a webservice
-@todo
+
+In a nutshell
+```bash
+curl 'http://localhost:1337/list/domains' -d '{"input": "foomail.com"}'
+{"result":"hotmail.com","score":0.9030303030303031}
+```
+
+### The path /list/< name >
+The name corresponds with a list definition in the config.yml. Using this approach the service can be used for various 
+types of data. This is both for efficiency (shorter lists to iterate over) and to be more opinionated. when no list by 
+that name is found, a 404 is returned.
+
 
 ## As a library
 You can use the various components that make up TySug individually or as a whole.
@@ -99,24 +110,23 @@ To help people avoid submitting an incorrect e-mail address, one could try the f
 
 ```go
 func SuggestAlternative(email string, domains []string) (string, float64) {
-
     i := strings.LastIndex(email, "@")
     if i <= 0 || i >= len(email) {
         return email, 0
     }
-    
+
     // Extracting the local and domain parts
     localPart := email[:i]
     hostname := email[i+1:]
-    
+
     sug, _ := finder.New(domains)
-    alternative, score := sug.Find(hostname)
-    
-    if score > 0.9 {
+    alternative, score, exact := sug.Find(hostname)
+
+    if exact || score > 0.9 {
         combined := localPart + "@" + alternative
         return combined, score
     }
-    
+
     return email, score
 }
 ```
