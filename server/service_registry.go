@@ -21,25 +21,26 @@ func NewServiceRegistry() ServiceRegistry {
 // Register registers a new service with a list of references
 func (rlh *ServiceRegistry) Register(listName string, svc Service) *ServiceRegistry {
 	rlh.lock.Lock()
-	defer rlh.lock.Unlock()
-
 	rlh.services[listName] = svc
+	rlh.lock.Unlock()
+
 	return rlh
 }
 
 // GetServiceForList returns a service able to handle a specific list
 func (rlh ServiceRegistry) GetServiceForList(name string) Service {
 	rlh.lock.RLock()
-	defer rlh.lock.RUnlock()
+	svc := rlh.services[name]
+	rlh.lock.RUnlock()
 
-	return rlh.services[name]
+	return svc
 }
 
 // HasServiceForList returns true only if a service has been registered for a certain list
 func (rlh ServiceRegistry) HasServiceForList(name string) bool {
 	rlh.lock.RLock()
-	defer rlh.lock.RUnlock()
-
 	_, ok := rlh.services[name]
+	rlh.lock.RUnlock()
+
 	return ok
 }
