@@ -1,6 +1,8 @@
 package server
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestWithInputLimitValidator(t *testing.T) {
 	s := TySugServer{}
@@ -21,9 +23,13 @@ func TestWithInputLimitValidator(t *testing.T) {
 	}
 }
 
-func TestWithCORS(t *testing.T) {
+func TestWithCORSOneOrigin(t *testing.T) {
 	s := TySugServer{}
 
+	hc := len(s.handlers)
 	WithCORS([]string{"localhost"})(&s)
 
+	if l := len(s.handlers); hc > l || l != 1 {
+		t.Errorf("Expected exactly one handler, instead I got %d.", l)
+	}
 }
