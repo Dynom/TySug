@@ -79,11 +79,13 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 		name := r.URL.Path[6:]
 		if name == "" {
 			tySug.Logger.Info("no list name defined")
+			w.WriteHeader(400)
 			return
 		}
 
 		if !sr.HasServiceForList(name) {
 			tySug.Logger.Infof("list '%s' not defined", name)
+			w.WriteHeader(404)
 			return
 		}
 
