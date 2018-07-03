@@ -115,26 +115,36 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 	return func(w http.ResponseWriter, r *http.Request) {
 		t, ctx := tomb.WithContext(r.Context())
 
+		ctxLogger := logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value(CtxRequestID),
+		})
+
 		req, reqErr := getRequestFromHTTPRequest(r)
 		if reqErr != nil {
+			if reqErr == ErrInvalidRequestBody {
+				ctxLogger.Errorf("Missing or invalid request body.")
+			} else {
+				ctxLogger.Errorf("Unable to process HTTP request, %s.", reqErr)
+			}
+
 			w.WriteHeader(400)
 			_, writeErr := w.Write([]byte(reqErr.Error()))
 			if writeErr != nil {
-				logger.Errorf("Error while writing 400 error: %s (original error: %q)", writeErr, reqErr)
+				ctxLogger.Errorf("Error while writing 400 error: %s (original error: %q)", writeErr, reqErr)
 			}
 			return
 		}
 
 		for _, v := range validators {
 			if vErr := v(req); vErr != nil {
-				logger.WithFields(logrus.Fields{
+				ctxLogger.WithFields(logrus.Fields{
 					"error": vErr,
 				}).Error("Request validation failed")
 
 				w.WriteHeader(400)
 				_, writeErr := w.Write([]byte("Validation failed."))
 				if writeErr != nil {
-					logger.Errorf("Error while writing 400 error: %s", writeErr)
+					ctxLogger.Errorf("Error while writing 400 error: %s", writeErr)
 				}
 				return
 			}
@@ -145,31 +155,28 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 		start := time.Now()
 		res.Result, res.Score = svc.Find(ctx, req.Input)
 
-		logger.WithFields(logrus.Fields{
+		ctxLogger.WithFields(logrus.Fields{
 			"input":       req.Input,
 			"suggestion":  res.Result,
 			"score":       res.Score,
 			"duration_µs": time.Since(start) / time.Microsecond,
-			"request_id":  ctx.Value(CtxRequestID),
 		}).Debug("Completed new ranking request")
 
 		if !t.Alive() {
-			logger.WithFields(logrus.Fields{
-				"request_id": ctx.Value(CtxRequestID),
-			}).Info("Request got cancelled")
+			ctxLogger.Info("Request got cancelled")
 		}
 
 		response, err := json.Marshal(res)
 		if err != nil {
 			w.WriteHeader(500)
 			_, writeErr := w.Write([]byte("unable to marshal result, b00m"))
-			logger.Errorf("Error while writing 500 error: %s (original marshaling error: %q)", writeErr, err)
+			ctxLogger.Errorf("Error while writing 500 error: %s (original marshaling error: %q)", writeErr, err)
 			return
 		}
 
 		_, err = w.Write(response)
 		if err != nil {
-			logger.Errorf("Error while writing response: %s", err)
+			ctxLogger.Errorf("Error while writing response: %s", err)
 		}
 	}
 }
