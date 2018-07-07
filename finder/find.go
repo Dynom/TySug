@@ -24,6 +24,7 @@ var (
 
 // WorstScoreValue holds the value of the lowest possible score
 const WorstScoreValue = -1 * math.MaxFloat32
+const BestScoreValue = math.MaxFloat32
 
 // New creates a new instance of Finder. The order of the list is significant
 func New(list []string, options ...Option) (*Finder, error) {
@@ -61,7 +62,7 @@ func (t Finder) FindCtx(ctx context.Context, input string) (string, float64, boo
 
 	// Exact matches
 	if _, exists := t.referenceMap[input]; exists {
-		return input, WorstScoreValue, true
+		return input, BestScoreValue, true
 	}
 
 	var best = input
