@@ -69,7 +69,7 @@ func (tss *TySugServer) ListenOnAndServe(addr string) error {
 }
 
 // NewHTTP constructs a new TySugServer
-func NewHTTP(sr ServiceRegistry, mux http.ServeMux, options ...Option) TySugServer {
+func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugServer {
 	tySug := TySugServer{
 		Logger: logrus.StandardLogger(),
 	}
@@ -78,7 +78,7 @@ func NewHTTP(sr ServiceRegistry, mux http.ServeMux, options ...Option) TySugServ
 		opt(&tySug)
 	}
 
-	var handler http.Handler = defaultHeaderHandler(createRequestIDHandler(&mux))
+	var handler http.Handler = defaultHeaderHandler(createRequestIDHandler(mux))
 	for _, h := range tySug.handlers {
 		handler = h(handler)
 	}
@@ -118,7 +118,7 @@ func NewHTTP(sr ServiceRegistry, mux http.ServeMux, options ...Option) TySugServ
 	}
 
 	if tySug.profConfig.Enable {
-		configureProfiler(tySug, &mux, tySug.profConfig)
+		configureProfiler(tySug, mux, tySug.profConfig)
 	}
 
 	return tySug

@@ -88,7 +88,7 @@ func main() {
 
 	s := server.NewHTTP(
 		sr,
-		*http.NewServeMux(),
+		http.NewServeMux(),
 		options...,
 	)
 

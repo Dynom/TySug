@@ -22,9 +22,11 @@ var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
 
-// WorstScoreValue holds the value of the lowest possible score
-const WorstScoreValue = -1 * math.MaxFloat32
-const BestScoreValue = math.MaxFloat32
+// These constants hold the value of the lowest and highest possible scores
+const (
+	WorstScoreValue = -1 * math.MaxFloat32
+	BestScoreValue  = math.MaxFloat32
+)
 
 // New creates a new instance of Finder. The order of the list is significant
 func New(list []string, options ...Option) (*Finder, error) {
