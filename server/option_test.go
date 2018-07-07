@@ -21,6 +21,11 @@ func TestWithInputLimitValidator(t *testing.T) {
 	if err := v(req); err == nil {
 		t.Errorf("Expected the request to be invalid, since the input is more than 12 bytes in size %+v", err)
 	}
+
+	req = tySugRequest{Input: "lt 12"}
+	if err := v(req); err != nil {
+		t.Errorf("Expected the request to be valid, since the input is less than 12 bytes in size %+v", err)
+	}
 }
 
 func TestWithCORSOneOrigin(t *testing.T) {
