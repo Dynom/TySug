@@ -229,14 +229,7 @@ func getRequestFromHTTPRequest(r *http.Request) (tySugRequest, error) {
 		return req, ErrBodyTooLarge
 	}
 
-	var limit int
-	if len(b) > maxBodySize {
-		limit = maxBodySize
-	} else {
-		limit = len(b)
-	}
-
-	err = json.Unmarshal(b[:limit], &req)
+	err = json.Unmarshal(b, &req)
 	if err != nil {
 		return req, ErrInvalidRequestBody
 	}
