@@ -66,7 +66,7 @@ func TestAlgorithms(t *testing.T) {
 		/*
 			"gmail.com": {
 				"gail.com", // gail.com now leads to mail.com while I think there is a higher possibility that people
-							// mean gmail.com on an English keyboard
+										// mean gmail.com on an English keyboard (since the G and M keys aren't very near on a QWERTY keyboard)
 
 			},
 		*/

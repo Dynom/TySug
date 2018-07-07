@@ -17,6 +17,9 @@ _`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
 
 or as a library
 ```go
+import "github.com/Dynom/TySug/finder"
+```
+```go
 referenceList := []string{"example", "amplifier", "ample"}
 ts := finder.New(referenceList, finder.OptSetAlgorithm(myAlgorithm))
 
