@@ -24,6 +24,7 @@ var (
 	ErrMissingBody        = errors.New("missing body")
 	ErrInvalidRequest     = errors.New("invalid request")
 	ErrInvalidRequestBody = errors.New("invalid request body")
+	ErrBodyTooLarge       = errors.New("body too large")
 )
 
 type contextKey int
@@ -215,7 +216,8 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 func getRequestFromHTTPRequest(r *http.Request) (tySugRequest, error) {
 	var req tySugRequest
 
-	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBodySize))
+	var maxSizePlusOne int64 = maxBodySize + 1
+	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxSizePlusOne))
 	if err != nil {
 		if err == io.EOF {
 			return req, ErrMissingBody
@@ -223,7 +225,18 @@ func getRequestFromHTTPRequest(r *http.Request) (tySugRequest, error) {
 		return req, ErrInvalidRequest
 	}
 
-	err = json.Unmarshal(b, &req)
+	if int64(len(b)) == maxSizePlusOne {
+		return req, ErrBodyTooLarge
+	}
+
+	var limit int
+	if len(b) > maxBodySize {
+		limit = maxBodySize
+	} else {
+		limit = len(b)
+	}
+
+	err = json.Unmarshal(b[:limit], &req)
 	if err != nil {
 		return req, ErrInvalidRequestBody
 	}
