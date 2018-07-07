@@ -11,7 +11,8 @@ _`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
 ```json
 {
   "result": "gmail.com",
-  "score": 0.9777777777777777
+  "score": 0.9777777777777777,
+  "exact_match": false
 }
 ```
 
