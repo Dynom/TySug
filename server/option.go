@@ -28,11 +28,6 @@ func WithLogger(logger *logrus.Logger) Option {
 
 // WithCORS adds the CORS handler to the request handling
 func WithCORS(allowedOrigins []string) Option {
-
-	if cap(allowedOrigins) == 0 {
-		allowedOrigins = []string{"*"}
-	}
-
 	c := cors.New(cors.Options{
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
