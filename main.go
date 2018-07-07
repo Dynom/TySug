@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/Dynom/TySug/server"
 	"github.com/Dynom/TySug/server/service"
@@ -10,6 +9,8 @@ import (
 
 	"fmt"
 	"io/ioutil"
+
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -26,6 +27,13 @@ type Config struct {
 	} `yaml:"CORS"`
 	Server struct {
 		ListenOn string `yaml:"listenOn"`
+		Log      struct {
+			Level string `yaml:"level"`
+		} `yaml:"log"`
+		Profiler struct {
+			Enable bool   `yaml:"enable"`
+			Prefix string `yaml:"prefix"`
+		} `yaml:"profiler"`
 	} `yaml:"server"`
 }
 
@@ -42,9 +50,18 @@ func main() {
 
 	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{}
-	logger.Info("Starting up...")
-	logger.Level = logrus.DebugLevel
 	logger.Out = os.Stdout
+	logger.Level, err = logrus.ParseLevel(config.Server.Log.Level)
+
+	if err != nil {
+		panic(err)
+	}
+
+	logger.WithFields(logrus.Fields{
+		"client": config.Client,
+		"server": config.Server,
+		"CORS":   config.CORS,
+	}).Info("Starting up...")
 
 	sr := server.NewServiceRegistry()
 	for label, references := range config.References {
@@ -58,13 +75,21 @@ func main() {
 		sr.Register(label, svc)
 	}
 
-	s := server.NewHTTP(
-		sr,
-		http.NewServeMux(),
+	options := []server.Option{
 		server.WithLogger(logger),
 		server.WithCORS(config.CORS.AllowedOrigins),
 		server.WithInputLimitValidator(config.Client.InputLengthMax),
 		server.WithGzipHandler(),
+	}
+
+	if config.Server.Profiler.Enable {
+		options = append(options, server.WithPProf(config.Server.Profiler.Prefix))
+	}
+
+	s := server.NewHTTP(
+		sr,
+		*http.NewServeMux(),
+		options...,
 	)
 
 	err = s.ListenOnAndServe(config.Server.ListenOn)

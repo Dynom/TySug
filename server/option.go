@@ -64,3 +64,11 @@ func WithGzipHandler() Option {
 		server.handlers = append(server.handlers, gziphandler.GzipHandler)
 	}
 }
+
+// WithPProf enables pprof
+func WithPProf(prefix string) Option {
+	return func(server *TySugServer) {
+		server.profConfig.Enable = true
+		server.profConfig.Prefix = prefix
+	}
+}

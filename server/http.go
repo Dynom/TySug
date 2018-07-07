@@ -11,6 +11,8 @@ import (
 
 	"errors"
 
+	"net/http/pprof"
+
 	"github.com/sirupsen/logrus"
 	"gopkg.in/tomb.v2"
 )
@@ -40,6 +42,11 @@ type tySugResponse struct {
 	Score  float64 `json:"score"`
 }
 
+type pprofConfig struct {
+	Enable bool
+	Prefix string
+}
+
 // Validator is a type to validate a client request, returning a nil errors means all went well.
 type Validator func(TSRequest tySugRequest) error
 
@@ -48,6 +55,7 @@ type TySugServer struct {
 	server     *http.Server
 	handlers   []func(h http.Handler) http.Handler
 	validators []Validator
+	profConfig pprofConfig
 
 	Logger *logrus.Logger
 }
@@ -60,7 +68,7 @@ func (tss *TySugServer) ListenOnAndServe(addr string) error {
 }
 
 // NewHTTP constructs a new TySugServer
-func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugServer {
+func NewHTTP(sr ServiceRegistry, mux http.ServeMux, options ...Option) TySugServer {
 	tySug := TySugServer{
 		Logger: logrus.StandardLogger(),
 	}
@@ -69,7 +77,7 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 		opt(&tySug)
 	}
 
-	var handler http.Handler = defaultHeaderHandler(createRequestIDHandler(mux))
+	var handler http.Handler = defaultHeaderHandler(createRequestIDHandler(&mux))
 	for _, h := range tySug.handlers {
 		handler = h(handler)
 	}
@@ -102,13 +110,35 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 	tySug.server = &http.Server{
 		ReadHeaderTimeout: 2 * time.Second,
 		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
+		WriteTimeout:      10 * time.Second, // Is overridden, when the profiler is enabled.
 		IdleTimeout:       60 * time.Second,
 		MaxHeaderBytes:    1 << 19, // 512 kb
 		Handler:           handler,
 	}
 
+	if tySug.profConfig.Enable {
+		configureProfiler(tySug, &mux, tySug.profConfig)
+	}
+
 	return tySug
+}
+
+func configureProfiler(s TySugServer, mux *http.ServeMux, c pprofConfig) {
+	var prefix string
+	if s.profConfig.Prefix != "" {
+		prefix = s.profConfig.Prefix
+	} else {
+		prefix = "debug"
+	}
+
+	mux.HandleFunc(`/`+prefix+`/pprof/`, pprof.Index)
+	mux.HandleFunc(`/`+prefix+`/pprof/cmdline`, pprof.Cmdline)
+	mux.HandleFunc(`/`+prefix+`/pprof/profile`, pprof.Profile)
+	mux.HandleFunc(`/`+prefix+`/pprof/symbol`, pprof.Symbol)
+	mux.HandleFunc(`/`+prefix+`/pprof/trace`, pprof.Trace)
+
+	// The profiler needs at least 30 seconds to use /prefix/pprof/profile
+	s.server.WriteTimeout = 31 * time.Second
 }
 
 func createRequestHandler(logger *logrus.Logger, svc Service, validators []Validator) http.HandlerFunc {
