@@ -33,9 +33,9 @@ type Service struct {
 }
 
 // Find returns the nearest reference
-func (s Service) Find(ctx context.Context, input string) (string, float64) {
-	suggestion, score, _ := s.finder.FindCtx(ctx, input)
-	return suggestion, score
+func (s Service) Find(ctx context.Context, input string) (string, float64, bool) {
+	suggestion, score, exact := s.finder.FindCtx(ctx, input)
+	return suggestion, score, exact
 }
 
 func algJaroWinkler() finder.Algorithm {

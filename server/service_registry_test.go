@@ -8,8 +8,8 @@ import (
 type stubSvc struct {
 }
 
-func (stubSvc) Find(ctx context.Context, input string) (string, float64) {
-	return "", 0
+func (stubSvc) Find(ctx context.Context, input string) (string, float64, bool) {
+	return "", 0, true
 }
 
 func TestHasServiceForList(t *testing.T) {

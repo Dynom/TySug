@@ -40,6 +40,7 @@ type tySugRequest struct {
 type tySugResponse struct {
 	Result string  `json:"result"`
 	Score  float64 `json:"score"`
+	Exact  bool    `json:"exact_match"`
 }
 
 type pprofConfig struct {
@@ -183,7 +184,7 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 		var res tySugResponse
 
 		start := time.Now()
-		res.Result, res.Score = svc.Find(ctx, req.Input)
+		res.Result, res.Score, res.Exact = svc.Find(ctx, req.Input)
 
 		ctxLogger.WithFields(logrus.Fields{
 			"input":       req.Input,
