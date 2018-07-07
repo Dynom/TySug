@@ -119,13 +119,13 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 	}
 
 	if tySug.profConfig.Enable {
-		configureProfiler(tySug, mux, tySug.profConfig)
+		configureProfiler(tySug, mux)
 	}
 
 	return tySug
 }
 
-func configureProfiler(s TySugServer, mux *http.ServeMux, c pprofConfig) {
+func configureProfiler(s TySugServer, mux *http.ServeMux) {
 	var prefix string
 	if s.profConfig.Prefix != "" {
 		prefix = s.profConfig.Prefix
