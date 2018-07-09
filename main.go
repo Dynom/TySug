@@ -48,6 +48,11 @@ func main() {
 		panic(err)
 	}
 
+	err = overrideConfigFromEnv(&config)
+	if err != nil {
+		panic(err)
+	}
+
 	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{}
 	logger.Out = os.Stdout
@@ -112,4 +117,28 @@ func buildConfig(fileName string) (Config, error) {
 	}
 
 	return c, nil
+}
+
+func overrideConfigFromEnv(c *Config) error {
+	if v, exists := os.LookupEnv("LISTEN_URL"); exists {
+		c.Server.ListenOn = v
+	}
+
+	if v, exists := os.LookupEnv("LOG_LEVEL"); exists {
+		c.Server.Log.Level = v
+	}
+
+	if v, exists := os.LookupEnv("PROFILER_PREFIX"); exists {
+		c.Server.Profiler.Prefix = v
+	}
+
+	if v, exists := os.LookupEnv("PROFILER_ENABLE"); exists {
+		if v == "true" {
+			c.Server.Profiler.Enable = true
+		} else {
+			c.Server.Profiler.Enable = false
+		}
+	}
+
+	return nil
 }
