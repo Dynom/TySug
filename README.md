@@ -22,7 +22,7 @@ import "github.com/Dynom/TySug/finder"
 ```
 ```go
 referenceList := []string{"example", "amplifier", "ample"}
-ts := finder.New(referenceList, finder.OptSetAlgorithm(myAlgorithm))
+ts := finder.New(referenceList, finder.WithAlgorithm(myAlgorithm))
 
 alt, score := ts.Find("exampel")
 // alt   = example
@@ -97,7 +97,7 @@ var someAlgorithm finder.AlgWrapper = func(a, b string) float64 {
     return 1 - (score / float64(ml))
 }
 
-sug := finder.New([]list, finder.OptSetAlgorithm(someAlgorithm))
+sug := finder.New([]list, finder.WithAlgorithm(someAlgorithm))
 bestMatch, score := sug.Find(input)
 // Here score might be 0.8 for a string of length 10, with 2 mutations
 ```
