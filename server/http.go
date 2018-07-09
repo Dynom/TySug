@@ -34,6 +34,11 @@ const (
 	CtxRequestID contextKey = iota
 )
 
+// Header constants
+const (
+	HeaderRequestID = "X-Request-ID"
+)
+
 type tySugRequest struct {
 	Input string `json:"input"`
 }
@@ -85,29 +90,7 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 	}
 
 	mux.HandleFunc("/", http.NotFound)
-	mux.HandleFunc("/list/", func(w http.ResponseWriter, r *http.Request) {
-		name := r.URL.Path[6:]
-		if name == "" {
-			tySug.Logger.Info("no list name defined")
-			w.WriteHeader(400)
-			return
-		}
-
-		if !sr.HasServiceForList(name) {
-			tySug.Logger.Infof("list '%s' not defined", name)
-			w.WriteHeader(404)
-			return
-		}
-
-		svc := sr.GetServiceForList(name)
-		hf := createRequestHandler(
-			tySug.Logger,
-			svc,
-			tySug.validators,
-		)
-
-		hf(w, r)
-	})
+	mux.HandleFunc("/list/", serviceHandler(tySug.Logger, sr, tySug.validators))
 
 	tySug.server = &http.Server{
 		ReadHeaderTimeout: 2 * time.Second,
@@ -217,6 +200,11 @@ func getRequestFromHTTPRequest(r *http.Request) (tySugRequest, error) {
 	var req tySugRequest
 
 	var maxSizePlusOne int64 = maxBodySize + 1
+
+	if r.Body == nil {
+		return req, ErrMissingBody
+	}
+
 	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxSizePlusOne))
 	if err != nil {
 		if err == io.EOF {

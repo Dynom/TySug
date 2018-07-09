@@ -5,6 +5,8 @@ import (
 
 	"fmt"
 
+	"errors"
+
 	"github.com/NYTimes/gziphandler"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
@@ -46,6 +48,10 @@ func WithInputLimitValidator(inputMax int) Option {
 		server.validators = append(server.validators, func(TSRequest tySugRequest) error {
 			if len(TSRequest.Input) > inputMax {
 				return fmt.Errorf("WithInputLimitValidator input exceeds server specified maximum of %d bytes", inputMax)
+			}
+
+			if len(TSRequest.Input) == 0 {
+				return errors.New("WithInputLimitValidator input may not be empty")
 			}
 
 			return nil
