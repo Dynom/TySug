@@ -7,7 +7,7 @@
 TySug is both a library and a webservice for suggesting alternatives.
 
 As Webservice
-_`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
+_`curl -s "http://tysug.net/list/domains" --data-binary '{"input": "gmail.co"}' | jq .`_
 ```json
 {
   "result": "gmail.com",
