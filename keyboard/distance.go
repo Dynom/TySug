@@ -62,14 +62,18 @@ func (kd KeyDist) FindNearest(input string, list []string) (string, float64) {
 		for i := 0; i < len(input); i++ {
 			if i >= len(ref) {
 				// @todo missing characters should have a cost, decide on a correct punishment value
-				score += 1
+
+				score += float64(1 * (len(input) - len(ref)))
+				break
+			}
+
+			if input[i] == ref[i] {
 				continue
 			}
 
-			if input[i] != ref[i] {
-				left, right := string(input[i]), string(ref[i])
-				score += getDistance(kd.grid[left], kd.grid[right])
-			}
+			left, right := input[i:i+1], ref[i:i+1]
+			score += getDistance(kd.grid[left], kd.grid[right])
+
 		}
 
 		if score < bestScore {

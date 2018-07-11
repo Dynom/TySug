@@ -53,6 +53,15 @@ func TestGetDistance(t *testing.T) {
 
 }
 
+func TestFindNearestPenaltyScore(t *testing.T) {
+	d := New(Default)
+	_, s := d.FindNearest("foobar", []string{"f"})
+
+	if s != 5 {
+		t.Errorf("Expected a penalty of 5, instead I got: %f", s)
+	}
+}
+
 func TestGenerateKeyDistance(t *testing.T) {
 	table := generateKeyGrid([]string{
 		"abc",  // 00, 10, 20
@@ -78,7 +87,7 @@ func TestGenerateKeyDistance(t *testing.T) {
 	}
 }
 
-func BenchmarkGetBestMatch(b *testing.B) {
+func BenchmarkFindNearest(b *testing.B) {
 	smallList := generateList(10)
 	bigList := generateList(1000)
 	b.Run("small-list", func(b *testing.B) {
@@ -92,6 +101,61 @@ func BenchmarkGetBestMatch(b *testing.B) {
 		kd := New(Default)
 		for i := 0; i < b.N; i++ {
 			kd.FindNearest("minkey", bigList)
+		}
+	})
+}
+
+func BenchmarkAccessingStringCharacters(b *testing.B) {
+	str := "42"
+
+	b.ReportAllocs()
+	b.Run("staying a byte", func(b *testing.B) {
+		var r uint8
+		for i := 0; i < b.N; i++ {
+			r = str[1]
+		}
+
+		_ = r
+	})
+
+	b.Run("with cast", func(b *testing.B) {
+		var r string
+		for i := 0; i < b.N; i++ {
+			r = string(str[1])
+		}
+
+		_ = r
+	})
+
+	b.Run("with substr index", func(b *testing.B) {
+		var r string
+		for i := 0; i < b.N; i++ {
+			r = str[1:2]
+		}
+		_ = r
+	})
+
+}
+
+func BenchmarkCompByteWithStringIndex(b *testing.B) {
+	base := "foo"
+	ref := "foo"
+
+	b.ReportAllocs()
+	b.Run("comparing bytes", func(b *testing.B) {
+		for n := 0; n < b.N; n++ {
+			if base[0] == ref[0] {
+				continue
+			}
+			panic("shouldn't happen")
+		}
+	})
+	b.Run("comparing strings", func(b *testing.B) {
+		for n := 0; n < b.N; n++ {
+			if base[0:1] == ref[0:1] {
+				continue
+			}
+			panic("shouldn't happen")
 		}
 	})
 }
