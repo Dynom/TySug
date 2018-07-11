@@ -21,8 +21,9 @@ func TestGetBestMatch(t *testing.T) {
 		{Input: "bee5", List: []string{"beef", "beer", "ben"}, Expect: "beer"},
 	}
 
+	kd := New(Default)
 	for _, td := range testData {
-		result, distance := FindNearest(td.Input, td.List)
+		result, distance := kd.FindNearest(td.Input, td.List)
 		if td.Expect != result {
 			t.Errorf("Expected '%s' to match '%s', instead I got '%s' with distance %f, %+v",
 				td.Input, td.Expect, result, distance, td)
@@ -81,14 +82,16 @@ func BenchmarkGetBestMatch(b *testing.B) {
 	smallList := generateList(10)
 	bigList := generateList(1000)
 	b.Run("small-list", func(b *testing.B) {
+		kd := New(Default)
 		for i := 0; i < b.N; i++ {
-			FindNearest("minkey", smallList)
+			kd.FindNearest("minkey", smallList)
 		}
 	})
 
 	b.Run("big-list", func(b *testing.B) {
+		kd := New(Default)
 		for i := 0; i < b.N; i++ {
-			FindNearest("minkey", bigList)
+			kd.FindNearest("minkey", bigList)
 		}
 	})
 }

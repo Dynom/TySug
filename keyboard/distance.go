@@ -4,13 +4,21 @@ import (
 	"math"
 )
 
+type KeyboardLayout string
+
+const (
+	Default  KeyboardLayout = QwertyUS
+	QwertyUS KeyboardLayout = "qwerty-us"
+)
+
+type keyGrid map[string]coordinates
+
 var (
-	keyGrid map[string]coordinates
 
 	// @todo this design currently ignores the possibility of pressing the shift key while typing
 	// we might want to allow printable symbols with the same coordinates as their un-shifted counterfeit
-	keyboardLayouts = map[string][]string{
-		"qwerty-us": {
+	keyboardLayouts = map[KeyboardLayout][]string{
+		QwertyUS: {
 			"`1234567890-=",
 			" qwertyuiop[]\\",
 			" asdfghjkl;'",
@@ -32,11 +40,17 @@ type coordinates struct {
 	Y float64
 }
 
-func init() {
-	keyGrid = generateKeyGrid(keyboardLayouts["qwerty-us"])
+type KeyDist struct {
+	grid keyGrid
 }
 
-func FindNearest(input string, list []string) (string, float64) {
+func New(layout KeyboardLayout) KeyDist {
+	return KeyDist{
+		grid: generateKeyGrid(keyboardLayouts[layout]),
+	}
+}
+
+func (kd KeyDist) FindNearest(input string, list []string) (string, float64) {
 	var bestScore = math.Inf(1)
 	var result string
 
@@ -54,7 +68,7 @@ func FindNearest(input string, list []string) (string, float64) {
 
 			if input[i] != ref[i] {
 				left, right := string(input[i]), string(ref[i])
-				score += getDistance(keyGrid[left], keyGrid[right])
+				score += getDistance(kd.grid[left], kd.grid[right])
 			}
 		}
 
@@ -73,8 +87,8 @@ func getDistance(a, b coordinates) float64 {
 	)
 }
 
-func generateKeyGrid(rows []string) map[string]coordinates {
-	var keyMap = make(map[string]coordinates, len(rows))
+func generateKeyGrid(rows []string) keyGrid {
+	var keyMap = make(keyGrid, len(rows))
 
 	for rowIndex, row := range rows {
 		for column, char := range row {
