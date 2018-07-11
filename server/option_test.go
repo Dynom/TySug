@@ -26,6 +26,11 @@ func TestWithInputLimitValidator(t *testing.T) {
 	if err := v(req); err != nil {
 		t.Errorf("Expected the request to be valid, since the input is less than 12 bytes in size %+v", err)
 	}
+
+	req = tySugRequest{Input: ""}
+	if err := v(req); err == nil {
+		t.Errorf("Expected the request to be invalid, since the input is empty %+v", err)
+	}
 }
 
 func TestWithCORSOneOrigin(t *testing.T) {
@@ -36,5 +41,14 @@ func TestWithCORSOneOrigin(t *testing.T) {
 
 	if l := len(s.handlers); hc > l || l != 1 {
 		t.Errorf("Expected exactly one handler, instead I got %d.", l)
+	}
+}
+
+func TestWithLogger(t *testing.T) {
+	s := TySugServer{}
+
+	WithLogger(nil)(&s)
+	if s.Logger == nil {
+		t.Errorf("Expected a default logger to be defined, if none was specified")
 	}
 }
