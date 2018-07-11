@@ -4,11 +4,13 @@ import (
 	"math"
 )
 
-type KeyboardLayout string
+// Layout is the type used to define keyboard layouts
+type Layout string
 
+// Predefined keyboard layouts
 const (
-	Default  KeyboardLayout = QwertyUS
-	QwertyUS KeyboardLayout = "qwerty-us"
+	Default  Layout = QwertyUS
+	QwertyUS Layout = "qwerty-us"
 )
 
 type keyGrid map[string]coordinates
@@ -17,7 +19,7 @@ var (
 
 	// @todo this design currently ignores the possibility of pressing the shift key while typing
 	// we might want to allow printable symbols with the same coordinates as their un-shifted counterfeit
-	keyboardLayouts = map[KeyboardLayout][]string{
+	keyboardLayouts = map[Layout][]string{
 		QwertyUS: {
 			"`1234567890-=",
 			" qwertyuiop[]\\",
@@ -40,16 +42,19 @@ type coordinates struct {
 	Y float64
 }
 
+// KeyDist is the type that allows to find the best alternative based on keyboard layouts
 type KeyDist struct {
 	grid keyGrid
 }
 
-func New(layout KeyboardLayout) KeyDist {
+// New produces a new instance of KeyDist, based on the keyboard layout you choose
+func New(l Layout) KeyDist {
 	return KeyDist{
-		grid: generateKeyGrid(keyboardLayouts[layout]),
+		grid: generateKeyGrid(keyboardLayouts[l]),
 	}
 }
 
+// FindNearest finds the item in the list that is nearest to the input, based on the keyboard layout
 func (kd KeyDist) FindNearest(input string, list []string) (string, float64) {
 	var bestScore = math.Inf(1)
 	var result string
