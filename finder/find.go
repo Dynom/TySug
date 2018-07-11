@@ -89,10 +89,14 @@ func (t Finder) FindCtx(ctx context.Context, input string) (string, float64, boo
 	return best, hs, false
 }
 
-// meetsLengthTolerance checks if the input meets the length tolerance criteria
+// meetsLengthTolerance checks if the input meets the length tolerance criteria. The percentage is based on the input
 func meetsLengthTolerance(t float64, input, reference string) bool {
-	if t == 0 {
+	if t <= 0 {
 		return true
+	}
+
+	if t > 1 {
+		return false
 	}
 
 	inputLen := len(input)

@@ -94,6 +94,34 @@ func TestContextCancel(t *testing.T) {
 	}
 }
 
+func TestMeetsLengthTolerance(t *testing.T) {
+	testData := []struct {
+		Expect    bool
+		Input     string
+		Reference string
+		Tolerance float64
+	}{
+		{Expect: true, Input: "foo", Reference: "bar", Tolerance: -1},
+		{Expect: true, Input: "foo", Reference: "bar", Tolerance: 0},
+		{Expect: true, Input: "foo", Reference: "bar", Tolerance: 1},
+		{Expect: false, Input: "foo", Reference: "bar", Tolerance: 2}, // erroneous situation
+
+		{Expect: true, Input: "smooth", Reference: "smoothie", Tolerance: 0.2},
+		{Expect: false, Input: "smooth", Reference: "smoothie", Tolerance: 0.1},
+
+		{Expect: true, Input: "abc", Reference: "defghi", Tolerance: 0.9},
+		{Expect: true, Input: "abc", Reference: "defg", Tolerance: 0.5},
+	}
+
+	for _, td := range testData {
+		r := meetsLengthTolerance(td.Tolerance, td.Input, td.Reference)
+		if r != td.Expect {
+			t.Errorf("Expected the tolerance to be %t\n%+v", td.Expect, td)
+		}
+	}
+
+}
+
 func BenchmarkSliceOrMap(b *testing.B) {
 	size := 50
 	var hashMap = make(map[int]int, size)
