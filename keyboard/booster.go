@@ -16,6 +16,14 @@ var (
 			" asdfghjkl;'",
 			" zxcvbnm,./",
 		},
+		/*
+			"azerty-fr": {
+				"&é\"'(-è çà)=",
+				"azertyuiop $",
+				"qsdfghjklmù*",
+				"<wxcvbn,;:!",
+			},
+		*/
 	}
 )
 
@@ -28,7 +36,7 @@ func init() {
 	keyGrid = generateKeyGrid(keyboardLayouts["qwerty-us"])
 }
 
-func GetBestMatch(input string, list []string) (string, float64) {
+func FindNearest(input string, list []string) (string, float64) {
 	var bestScore = math.Inf(1)
 	var result string
 
@@ -69,9 +77,8 @@ func generateKeyGrid(rows []string) map[string]coordinates {
 	var keyMap = make(map[string]coordinates, len(rows))
 
 	for rowIndex, row := range rows {
-		for column := 0; column < len(row); column++ {
-			character := string(row[column])
-
+		for column, char := range row {
+			character := string(char)
 			if character == " " {
 				continue
 			}
