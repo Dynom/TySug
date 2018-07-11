@@ -32,14 +32,14 @@ func TestGetBestMatch(t *testing.T) {
 
 func TestGetDistance(t *testing.T) {
 	testData := []struct {
-		A        Coordinates
-		B        Coordinates
+		A        coordinates
+		B        coordinates
 		Distance float64
 	}{
-		{A: Coordinates{X: 0, Y: 0}, B: Coordinates{X: 0, Y: 100}, Distance: 100},
-		{A: Coordinates{X: 0, Y: 0}, B: Coordinates{X: 100, Y: 0}, Distance: 100},
-		{A: Coordinates{X: 1, Y: 2}, B: Coordinates{X: 1, Y: 2}, Distance: 0},
-		{A: Coordinates{X: 10, Y: 20}, B: Coordinates{X: 20, Y: 10}, Distance: 14.14},
+		{A: coordinates{X: 0, Y: 0}, B: coordinates{X: 0, Y: 100}, Distance: 100},
+		{A: coordinates{X: 0, Y: 0}, B: coordinates{X: 100, Y: 0}, Distance: 100},
+		{A: coordinates{X: 1, Y: 2}, B: coordinates{X: 1, Y: 2}, Distance: 0},
+		{A: coordinates{X: 10, Y: 20}, B: coordinates{X: 20, Y: 10}, Distance: 14.14},
 	}
 
 	for _, td := range testData {
@@ -53,21 +53,52 @@ func TestGetDistance(t *testing.T) {
 }
 
 func TestGenerateKeyDistance(t *testing.T) {
-	table := generateKeyDistance([]string{
-		"abc", // 00, 01, 02
-		"def", // 10, 11, 12
-		"ghi", // 20, 21, 22
+	table := generateKeyGrid([]string{
+		"abc",  // 00, 10, 20
+		"def",  // 01, 11, 21
+		"ghi",  // 02, 12, 22
+		" jkl", // 03, 13, 23, 33 (leading space)
 	})
 
-	if table["a"].X != 0 || table["a"].Y != 0 {
-		t.Errorf("Expected the coords to be at 0,0 %+v", table["a"])
+	if c := table["a"]; c.X != 0 || c.Y != 0 {
+		t.Errorf("Expected the coords to be at 0,0 %+v", c)
 	}
 
-	if table["e"].X != 1 || table["e"].Y != 1 {
-		t.Errorf("Expected the coords to be at 1,1 %+v", table["i"])
+	if c := table["e"]; c.X != 1 || c.Y != 1 {
+		t.Errorf("Expected the coords to be at 1,1 %+v", c)
 	}
 
-	if table["i"].X != 2 || table["i"].Y != 2 {
-		t.Errorf("Expected the coords to be at 2,2 %+v", table["i"])
+	if c := table["i"]; c.X != 2 || c.Y != 2 {
+		t.Errorf("Expected the coords to be at 2,2 %+v", c)
 	}
+
+	if c := table["j"]; c.X != 1 || c.Y != 3 {
+		t.Errorf("Expected the coords to be at 3,1 %+v", c)
+	}
+}
+
+func BenchmarkGetBestMatch(b *testing.B) {
+	smallList := generateList(10)
+	bigList := generateList(1000)
+	b.Run("small-list", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			GetBestMatch("minkey", smallList)
+		}
+	})
+
+	b.Run("big-list", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			GetBestMatch("minkey", bigList)
+		}
+	})
+}
+
+func generateList(size int) []string {
+	list := make([]string, 0, size)
+
+	for i := 0; i < size; i++ {
+		list = append(list, "monkey")
+	}
+
+	return list
 }
