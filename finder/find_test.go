@@ -94,6 +94,35 @@ func TestContextCancel(t *testing.T) {
 	}
 }
 
+func TestFind(t *testing.T) {
+	refs := []string{
+		"a", "b",
+		"12", "23", "24", "25",
+		"food", "foor", "fool", "foon",
+		"bar", "baz", "ban", "bal",
+	}
+
+	mockAlg := func(a, b string) float64 {
+		var left string
+		var right string
+
+		if len(a) > len(b) {
+			left, right = a, b
+		} else {
+			right, left = a, b
+		}
+
+		return -1 * float64(len(left)-len(right))
+	}
+
+	f, _ := New(refs,
+		WithAlgorithm(mockAlg),
+		WithLengthTolerance(0),
+	)
+
+	f.Find("bat")
+}
+
 func TestMeetsLengthTolerance(t *testing.T) {
 	testData := []struct {
 		Expect    bool

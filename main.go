@@ -37,9 +37,11 @@ type Config struct {
 	} `yaml:"server"`
 }
 
-var config = Config{}
+// Version contains the app version, the value is changed during compile time to the appropriate Git tag
+var Version = "dev"
 
 func main() {
+	var config Config
 	var err error
 
 	config, err = buildConfig("config.yml")
@@ -63,9 +65,10 @@ func main() {
 	}
 
 	logger.WithFields(logrus.Fields{
-		"client": config.Client,
-		"server": config.Server,
-		"CORS":   config.CORS,
+		"version": Version,
+		"client":  config.Client,
+		"server":  config.Server,
+		"CORS":    config.CORS,
 	}).Info("Starting up...")
 
 	sr := server.NewServiceRegistry()

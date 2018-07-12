@@ -53,25 +53,33 @@ func New(list []string, options ...Option) (*Finder, error) {
 // Find returns the best alternative a score and if it was an exact match or not.
 // Since algorithms can define their own upper-bound, there is no "best" value.
 func (t Finder) Find(input string) (string, float64, bool) {
-	return t.FindCtx(context.Background(), input)
+	matches, score, exact := t.FindTopRankingCtx(context.Background(), input)
+	return matches[0], score, exact
 }
 
 // FindCtx is the same as Find, with context support.
 func (t Finder) FindCtx(ctx context.Context, input string) (string, float64, bool) {
+	matches, score, exact := t.FindTopRankingCtx(ctx, input)
+	return matches[0], score, exact
+}
+
+// FindTopRankingCtx returns a list (of at least one element) of references with the same "best" score
+func (t Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string, float64, bool) {
+
 	// Initial value, compatible with JSON serialisation. It's not ideal to mix presentation with business logic
 	// but in this instance it was convenient and similarly effective to math.Inf(-1)
 	var hs = WorstScoreValue
 
 	// Exact matches
 	if _, exists := t.referenceMap[input]; exists {
-		return input, BestScoreValue, true
+		return []string{input}, BestScoreValue, true
 	}
 
-	var best = input
+	var sameScore = []string{input}
 	for _, ref := range t.reference {
 		select {
 		case <-ctx.Done():
-			return input, WorstScoreValue, false
+			return []string{input}, WorstScoreValue, false
 		default:
 		}
 
@@ -80,13 +88,16 @@ func (t Finder) FindCtx(ctx context.Context, input string) (string, float64, boo
 			continue
 		}
 
-		if score := t.Alg(input, ref); score > hs {
+		score := t.Alg(input, ref)
+		if score > hs {
 			hs = score
-			best = ref
+			sameScore = []string{ref}
+		} else if score == hs {
+			sameScore = append(sameScore, ref)
 		}
 	}
 
-	return best, hs, false
+	return sameScore, hs, false
 }
 
 // meetsLengthTolerance checks if the input meets the length tolerance criteria. The percentage is based on the input

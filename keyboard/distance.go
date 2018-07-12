@@ -60,27 +60,7 @@ func (kd KeyDist) FindNearest(input string, list []string) (string, float64) {
 	var result string
 
 	for _, ref := range list {
-
-		var score float64
-
-		// Scanning each letter of this ref
-		for i := 0; i < len(input); i++ {
-			if i >= len(ref) {
-				// @todo missing characters should have a cost, decide on a correct punishment value
-
-				score += float64(1 * (len(input) - len(ref)))
-				break
-			}
-
-			if input[i] == ref[i] {
-				continue
-			}
-
-			left, right := input[i:i+1], ref[i:i+1]
-			score += getDistance(kd.grid[left], kd.grid[right])
-
-		}
-
+		score := kd.CalculateDistance(input, ref)
 		if score < bestScore {
 			bestScore = score
 			result = ref
@@ -88,6 +68,31 @@ func (kd KeyDist) FindNearest(input string, list []string) (string, float64) {
 	}
 
 	return result, bestScore
+}
+
+// CalculateDistance calculates the total distances of the reference to the input
+func (kd KeyDist) CalculateDistance(input, ref string) float64 {
+	var score float64
+
+	// Scanning each letter of this ref
+	for i := 0; i < len(input); i++ {
+		if i >= len(ref) {
+
+			// @todo missing characters should have a cost, decide on a correct punishment value
+			score += float64(1 * (len(input) - len(ref)))
+			break
+		}
+
+		if input[i] == ref[i] {
+			continue
+		}
+
+		left, right := input[i:i+1], ref[i:i+1]
+		score += getDistance(kd.grid[left], kd.grid[right])
+
+	}
+
+	return score
 }
 
 func getDistance(a, b coordinates) float64 {

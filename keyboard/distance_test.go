@@ -19,14 +19,49 @@ func TestGetBestMatch(t *testing.T) {
 		{Input: "bee5", List: []string{"beef", "beer"}, Expect: "beer"},
 		{Input: "bee5", List: []string{"beef", "beer", "beast"}, Expect: "beer"},
 		{Input: "bee5", List: []string{"beef", "beer", "ben"}, Expect: "beer"},
+
+		{Input: "applejuice", List: []string{"apple", "pqqamqzxom", "excellent"}, Expect: "apple"},
 	}
 
 	kd := New(Default)
 	for _, td := range testData {
 		result, distance := kd.FindNearest(td.Input, td.List)
+		t.Logf("%s -> %s (%f)", td.Input, result, distance)
 		if td.Expect != result {
 			t.Errorf("Expected '%s' to match '%s', instead I got '%s' with distance %f, %+v",
 				td.Input, td.Expect, result, distance, td)
+		}
+	}
+}
+
+func TestCalculateDistance(t *testing.T) {
+	testData := []struct {
+		Input    string
+		Ref      string
+		Distance float64
+	}{
+		// near misses
+		{Input: "bee4", Ref: "beef", Distance: 2},
+		{Input: "bee5", Ref: "beer", Distance: 1.41},
+		{Input: "applejuice", Ref: "apple", Distance: 5}, // Only the letters are missing
+
+		// Realistic typos
+		{Input: "applejuice", Ref: "applejuis", Distance: 2.41},
+		{Input: "applejuice", Ref: "applejuisc", Distance: 3.41},
+		{Input: "applejuice", Ref: "qookehjyuse", Distance: 13.88}, // fingers misaligned with keyboard
+
+		// exaggerated experiments
+		{Input: "applejuice", Ref: "pqqamqzxom", Distance: 69.05}, // A large distance (on QuertyUS), same word lengths
+		{Input: "applejuice", Ref: "excellent", Distance: 42.58},  // against a random word
+
+	}
+
+	kd := New(QwertyUS)
+	for _, td := range testData {
+		d := kd.CalculateDistance(td.Input, td.Ref)
+
+		if math.Abs(d-td.Distance) > floatTolerance {
+			t.Errorf("Expected %s vs. %s to have a score of %f, instead I got %f", td.Input, td.Ref, td.Distance, d)
 		}
 	}
 }
@@ -63,26 +98,26 @@ func TestFindNearestPenaltyScore(t *testing.T) {
 }
 
 func TestGenerateKeyDistance(t *testing.T) {
-	table := generateKeyGrid([]string{
+	grid := generateKeyGrid([]string{
 		"abc",  // 00, 10, 20
 		"def",  // 01, 11, 21
 		"ghi",  // 02, 12, 22
 		" jkl", // 03, 13, 23, 33 (leading space)
 	})
 
-	if c := table["a"]; c.X != 0 || c.Y != 0 {
+	if c := grid["a"]; c.X != 0 || c.Y != 0 {
 		t.Errorf("Expected the coords to be at 0,0 %+v", c)
 	}
 
-	if c := table["e"]; c.X != 1 || c.Y != 1 {
+	if c := grid["e"]; c.X != 1 || c.Y != 1 {
 		t.Errorf("Expected the coords to be at 1,1 %+v", c)
 	}
 
-	if c := table["i"]; c.X != 2 || c.Y != 2 {
+	if c := grid["i"]; c.X != 2 || c.Y != 2 {
 		t.Errorf("Expected the coords to be at 2,2 %+v", c)
 	}
 
-	if c := table["j"]; c.X != 1 || c.Y != 3 {
+	if c := grid["j"]; c.X != 1 || c.Y != 3 {
 		t.Errorf("Expected the coords to be at 3,1 %+v", c)
 	}
 }
@@ -109,6 +144,8 @@ func BenchmarkAccessingStringCharacters(b *testing.B) {
 	str := "42"
 
 	b.ReportAllocs()
+
+	// Reference test
 	b.Run("staying a byte", func(b *testing.B) {
 		var r uint8
 		for i := 0; i < b.N; i++ {
