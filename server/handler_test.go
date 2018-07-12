@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"encoding/json"
 
+	"strings"
+
 	"github.com/sirupsen/logrus/hooks/test"
 )
 
@@ -104,5 +106,40 @@ func TestRequestID(t *testing.T) {
 
 	if rid1 == "" {
 		t.Errorf("Did not expect the request ID to be empty.")
+	}
+}
+
+func TestCORS(t *testing.T) {
+	recorder := httptest.NewRecorder()
+
+	reqOrigin := "https://example.org"
+	reqMethod := http.MethodPost
+	reqHeader := "X-Foo-Bar"
+
+	{ // setup
+		req := httptest.NewRequest(http.MethodOptions, "/", nil)
+		req.Header.Set("Origin", reqOrigin)
+		req.Header.Set("Access-Control-Request-Method", reqMethod)
+		req.Header.Set("Access-Control-Request-Headers", reqHeader)
+
+		c := createCORSType(nil)
+		c.Handler(http.NotFoundHandler()).ServeHTTP(recorder, req)
+	}
+
+	resultOrigin := recorder.Result().Header.Get("Access-Control-Allow-Origin")
+	resultMethods := recorder.Result().Header.Get("Access-Control-Allow-Methods")
+	resultHeaders := recorder.Result().Header.Get("Access-Control-Allow-Headers")
+
+	if resultOrigin != reqOrigin {
+		t.Errorf("Expected the origins to match")
+		t.Logf("%+v", recorder.Result())
+	}
+
+	if !strings.Contains(resultHeaders, reqHeader) {
+		t.Errorf("Expected the headers to be present")
+	}
+
+	if !strings.Contains(resultMethods, reqMethod) {
+		t.Errorf("Expected the methods to be present")
 	}
 }

@@ -30,6 +30,14 @@ func WithLogger(logger *logrus.Logger) Option {
 
 // WithCORS adds the CORS handler to the request handling
 func WithCORS(allowedOrigins []string) Option {
+	c := createCORSType(allowedOrigins)
+
+	return func(server *TySugServer) {
+		server.handlers = append(server.handlers, c.Handler)
+	}
+}
+
+func createCORSType(allowedOrigins []string) *cors.Cors {
 	c := cors.New(cors.Options{
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
@@ -37,9 +45,7 @@ func WithCORS(allowedOrigins []string) Option {
 		AllowedOrigins:   allowedOrigins,
 	})
 
-	return func(server *TySugServer) {
-		server.handlers = append(server.handlers, c.Handler)
-	}
+	return c
 }
 
 // WithInputLimitValidator specifies a max input-value limit validator
