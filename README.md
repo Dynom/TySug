@@ -17,9 +17,25 @@ out-of-the-box as a library, a webservice or as a set of packages to build your 
 
 # Using TySug
 
+## TL;DR
+
+If you have Docker, just run:
+
+```bash
+docker run --rm -it dynom/tysug:latest
+```
+
+_If you don't have Docker, you can download the binary from the [releases](https://github.com/Dynom/TySug/releases) page._
+
+In a different terminal, run:
+
+```bash
+curl -s "http://127.0.0.1:1337/list/domains" --data-binary '{"input": "gmail.co"}'
+```
+
 ## As Webservice
 
-_`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
+_`curl -s "http://host:port/list/domains" --data-binary '{"input": "gmail.co"}' | jq .`_
 ```json
 {
   "result": "gmail.com",
@@ -27,11 +43,14 @@ _`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
   "exact_match": false
 }
 ```
-The webservice uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) to calculate similarity.
+
+- The webservice uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) to calculate similarity.
+- The example uses [jq](https://stedolan.github.io/jq/), just omit it if you don't have it installed.
+
 
 ### The path /list/< name >
 
-The name corresponds with a list definition in the config.yml. Using this approach the service can be used for various 
+The name corresponds with a list definition in the [config.yml](https://github.com/Dynom/TySug/blob/master/config.yml). Using this approach the service can be used for various 
 types of data. This is both for efficiency (shorter lists to iterate over) and to be more opinionated. when no list by 
 that name is found, a 404 is returned.
 
@@ -75,7 +94,7 @@ When adding your own algorithm, you'll need to handle the "confidence" element y
 handle it just fine, but depending on the scale the algorithm uses you'll need to either normalize the scale or deal 
 with the score. 
 
-_Note: Be careful not to introduce bias when converting scale_
+_Note: Be careful not to introduce bias when converting scale._
 ```go
 var someAlgorithm finder.AlgWrapper = func(a, b string) float64 {
 
@@ -112,6 +131,9 @@ return -1 * score
 The reference list is a list with known/approved words. TySug's webservice is not optimised to deal with large lists, 
 instead it aims for "opinionated" lists. This way you can have a list of domain names or country names. This keeps the 
 service snappy and less prone to false-positives.
+
+Large is relative. The size is strongly related to the processing time, longer lists take more time 
+[O(N)](http://bigocheatsheet.com/). Test and keep the list within your response-time limits :-). 
 
 ### Case-sensitivity
 
