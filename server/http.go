@@ -24,6 +24,7 @@ var (
 	ErrMissingBody        = errors.New("missing body")
 	ErrInvalidRequest     = errors.New("invalid request")
 	ErrInvalidRequestBody = errors.New("invalid request body")
+	ErrBodyTooLarge       = errors.New("body too large")
 )
 
 type contextKey int
@@ -31,6 +32,11 @@ type contextKey int
 // Context value parameters
 const (
 	CtxRequestID contextKey = iota
+)
+
+// Header constants
+const (
+	HeaderRequestID = "X-Request-ID"
 )
 
 type tySugRequest struct {
@@ -84,29 +90,7 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 	}
 
 	mux.HandleFunc("/", http.NotFound)
-	mux.HandleFunc("/list/", func(w http.ResponseWriter, r *http.Request) {
-		name := r.URL.Path[6:]
-		if name == "" {
-			tySug.Logger.Info("no list name defined")
-			w.WriteHeader(400)
-			return
-		}
-
-		if !sr.HasServiceForList(name) {
-			tySug.Logger.Infof("list '%s' not defined", name)
-			w.WriteHeader(404)
-			return
-		}
-
-		svc := sr.GetServiceForList(name)
-		hf := createRequestHandler(
-			tySug.Logger,
-			svc,
-			tySug.validators,
-		)
-
-		hf(w, r)
-	})
+	mux.HandleFunc("/list/", serviceHandler(tySug.Logger, sr, tySug.validators))
 
 	tySug.server = &http.Server{
 		ReadHeaderTimeout: 2 * time.Second,
@@ -118,13 +102,13 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 	}
 
 	if tySug.profConfig.Enable {
-		configureProfiler(tySug, mux, tySug.profConfig)
+		configureProfiler(tySug, mux)
 	}
 
 	return tySug
 }
 
-func configureProfiler(s TySugServer, mux *http.ServeMux, c pprofConfig) {
+func configureProfiler(s TySugServer, mux *http.ServeMux) {
 	var prefix string
 	if s.profConfig.Prefix != "" {
 		prefix = s.profConfig.Prefix
@@ -215,12 +199,22 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 func getRequestFromHTTPRequest(r *http.Request) (tySugRequest, error) {
 	var req tySugRequest
 
-	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBodySize))
+	var maxSizePlusOne int64 = maxBodySize + 1
+
+	if r.Body == nil {
+		return req, ErrMissingBody
+	}
+
+	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxSizePlusOne))
 	if err != nil {
 		if err == io.EOF {
 			return req, ErrMissingBody
 		}
 		return req, ErrInvalidRequest
+	}
+
+	if int64(len(b)) == maxSizePlusOne {
+		return req, ErrBodyTooLarge
 	}
 
 	err = json.Unmarshal(b, &req)

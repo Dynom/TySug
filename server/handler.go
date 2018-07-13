@@ -8,7 +8,35 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
+
+func serviceHandler(l *logrus.Logger, sr ServiceRegistry, validators []Validator) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		name := r.URL.Path[6:]
+		if name == "" {
+			l.Info("no list name defined")
+			w.WriteHeader(400)
+			return
+		}
+
+		if !sr.HasServiceForList(name) {
+			l.Infof("list '%s' not defined", name)
+			w.WriteHeader(404)
+			return
+		}
+
+		svc := sr.GetServiceForList(name)
+		hf := createRequestHandler(
+			l,
+			svc,
+			validators,
+		)
+
+		hf(w, r)
+	}
+}
 
 func defaultHeaderHandler(h http.Handler) http.HandlerFunc {
 
@@ -51,6 +79,8 @@ func createRequestIDHandler(h http.Handler) http.HandlerFunc {
 		lock.Unlock()
 
 		ctx := context.WithValue(r.Context(), CtxRequestID, requestID)
+		w.Header().Set(HeaderRequestID, requestID)
+
 		h.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

@@ -126,3 +126,12 @@ references:
     - hotmail.nl
     - ziggo.nl
     - live.com
+  test:
+    - beek
+    - beel
+    - been
+    - bear
+    - bare
+    - beer
+    - bool
+    - boot

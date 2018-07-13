@@ -1,59 +1,56 @@
 # TySug
+
 [![CircleCI](https://circleci.com/gh/Dynom/TySug.svg?style=svg)](https://circleci.com/gh/Dynom/TySug)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Dynom/TySug)](https://goreportcard.com/report/github.com/Dynom/TySug)
 [![GoDoc](https://godoc.org/github.com/Dynom/TySug?status.svg)](https://godoc.org/github.com/Dynom/TySug)
 [![codecov](https://codecov.io/gh/Dynom/TySug/branch/master/graph/badge.svg)](https://codecov.io/gh/Dynom/TySug)
 
-TySug is both a library and a webservice for suggesting alternatives.
+TySug is a keyboard layout aware alternative word suggester. It can be used as both a library and a webservice.
 
-As Webservice
+The primary supported use-case is to help with spelling mistakes against short popular word lists (e.g. domain names). 
+Which is useful in helping to prevent typos in e.g. e-mail addresses. 
+
+The goal is to provide an extensible library that helps with finding possible spelling errors. You can use it 
+out-of-the-box as a library, a webservice or as a set of packages to build your own application.
+
+
+# Using TySug
+
+## As Webservice
+
 _`curl -s "http://host:port" --data-binary '{"input": "gmail.co"}' | jq .`_
 ```json
 {
   "result": "gmail.com",
-  "score": 0.9777777777777777
+  "score": 0.9777777777777777,
+  "exact_match": false
 }
 ```
+The webservice uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) to calculate similarity.
 
-or as a library
+### The path /list/< name >
+
+The name corresponds with a list definition in the config.yml. Using this approach the service can be used for various 
+types of data. This is both for efficiency (shorter lists to iterate over) and to be more opinionated. when no list by 
+that name is found, a 404 is returned.
+
+## As a library
+
 ```go
 import "github.com/Dynom/TySug/finder"
 ```
 ```go
 referenceList := []string{"example", "amplifier", "ample"}
-ts := finder.New(referenceList, finder.OptSetAlgorithm(myAlgorithm))
+ts := finder.New(referenceList, finder.WithAlgorithm(myAlgorithm))
 
-alt, score := ts.Find("exampel")
+alt, score, exact := ts.Find("exampel")
 // alt   = example
-// score = 0.9714285714285714 
+// score = 0.9714285714285714
+// exact = false (not an exact match in our reference list)
 ```
-
-The goal is to provide an extensible application that helps with finding possible spelling errors. You can use it 
-out-of-the-box as a library, a webservice or as a set of packages to build your own application.
-
-By default it uses [Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) to calculate similarity.
-
-## As a webservice
-
-In a nutshell
-```bash
-curl 'http://localhost:1337/list/domains' -d '{"input": "foomail.com"}'
-{"result":"hotmail.com","score":0.9030303030303031}
-```
-
-### The path /list/< name >
-The name corresponds with a list definition in the config.yml. Using this approach the service can be used for various 
-types of data. This is both for efficiency (shorter lists to iterate over) and to be more opinionated. when no list by 
-that name is found, a 404 is returned.
-
-
-## As a library
-You can use the various components that make up TySug individually or as a whole.
-
-### Example
-
 
 ### Using a different algorithm
+
 if you want to use a different algorithm, simply wrap your algorithm in a `finder.Algorithm` compatible type and pass 
 it as argument to the Finder. You can find inspiration in the unit-tests / examples.
 
@@ -69,9 +66,10 @@ Possible considerations:
  - [Sift4](https://siderite.blogspot.com/2014/11/super-fast-and-accurate-string-distance.html) (used in [mailcheck.js](https://github.com/mailcheck/mailcheck))
  
 Sources:
- - https://www.joyofdata.de/blog/comparison-of-string-distance-algorithms/
+ - [joyofdata.de/blog/comparison-of-string-distance-algorithms/](https://www.joyofdata.de/blog/comparison-of-string-distance-algorithms/)
 
 ### Dealing with confidence
+
 When adding your own algorithm, you'll need to handle the "confidence" element yourself. By default TySug's finder will 
 handle it just fine, but depending on the scale the algorithm uses you'll need to either normalize the scale or deal 
 with the score. 
@@ -96,7 +94,7 @@ var someAlgorithm finder.AlgWrapper = func(a, b string) float64 {
     return 1 - (score / float64(ml))
 }
 
-sug := finder.New([]list, finder.OptSetAlgorithm(someAlgorithm))
+sug := finder.New([]list, finder.WithAlgorithm(someAlgorithm))
 bestMatch, score := sug.Find(input)
 // Here score might be 0.8 for a string of length 10, with 2 mutations
 ```
@@ -106,9 +104,41 @@ Without converting the scale, you'll have no bias, however you need to deal with
 // typically produces a range from (-1 * maximumInputLength) to 0
 return -1 * score
 ```
+# Details
+
+## Reference lists
+
+The reference list is a list with known/approved words. TySug's webservice is not optimised to deal with large lists, 
+instead it aims for "opinionated" lists. This way you can have a list of domain names or country names. This keeps the 
+service snappy and less prone to false-positives.
+
+### Case-sensitivity
+
+TySug does not normalise words. This means that words are treated in a case-sensitive matter. This is done mostly to
+avoid doing unnecessary work in the hot-path. Typically you'll want to make sure both your lists and your input uses the
+same casing.
+
+### Ordering
+
+The reference list order is significant. The first of an equal score wins the election. So you'll want to put more 
+common, popular, etc. words first in the list. 
+
+## Keyboard layout awareness
+
+Tysug's webservice is keyboard layout aware. This means that when the input is 'bee5' and the reference list contains the 
+words 'beer' and 'beek', the word 'beer' is favoured on a Query-US keyboard.
+
+This happens because of a two-pass approach. In the first pass a list of words is collected with 1 or more words with the
+same score. If more than 1 word is found with the same score, the keyboard algorithm is applied. Most string-distance
+algorithms factor in the "cost" of reaching equality. The amount of "cost" it takes with one letter difference, in the 
+same location within a word (E.g.: bee5 versus beer or beek) is typically the same. Making in the assumption that a 
+word is typed by a human on a keyboard and that fingers need to travel a distance to reach certain buttons. Factoring in
+this assumption could produce better results in the right context.
 
 # Examples
+
 ## Finding common e-mail domain typos
+
 To help people avoid submitting an incorrect e-mail address, one could try the following:
 
 ```go
@@ -133,16 +163,3 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
     return email, score
 }
 ```
-
-Do note that:
- - The comparisons are done in a case-sensitive manner, so you probably want to normalize the input and the
-   reference list.
- - The reference list order is significant, the first of an equal score wins the election. Put more common words first.
- - Score is very dependant on the algorithm used, you'll want to tweak it for your use-case.
- 
- 
-# Wish list
-
-- Become keyboard aware -- _The keyboard layout could help with identifying more "logical" typing mistakes 
-  "beer" versus "beek" or "bee5". They might result with the same score, but "beer" might be more suitable with "bee5" 
-  as input_.

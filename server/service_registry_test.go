@@ -6,10 +6,13 @@ import (
 )
 
 type stubSvc struct {
+	FindResult string
+	FindScore  float64
+	FindExact  bool
 }
 
-func (stubSvc) Find(ctx context.Context, input string) (string, float64, bool) {
-	return "", 0, true
+func (svc stubSvc) Find(ctx context.Context, input string) (string, float64, bool) {
+	return svc.FindResult, svc.FindScore, svc.FindExact
 }
 
 func TestHasServiceForList(t *testing.T) {

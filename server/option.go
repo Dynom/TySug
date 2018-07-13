@@ -5,6 +5,8 @@ import (
 
 	"fmt"
 
+	"errors"
+
 	"github.com/NYTimes/gziphandler"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
@@ -28,6 +30,14 @@ func WithLogger(logger *logrus.Logger) Option {
 
 // WithCORS adds the CORS handler to the request handling
 func WithCORS(allowedOrigins []string) Option {
+	c := createCORSType(allowedOrigins)
+
+	return func(server *TySugServer) {
+		server.handlers = append(server.handlers, c.Handler)
+	}
+}
+
+func createCORSType(allowedOrigins []string) *cors.Cors {
 	c := cors.New(cors.Options{
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
@@ -35,9 +45,7 @@ func WithCORS(allowedOrigins []string) Option {
 		AllowedOrigins:   allowedOrigins,
 	})
 
-	return func(server *TySugServer) {
-		server.handlers = append(server.handlers, c.Handler)
-	}
+	return c
 }
 
 // WithInputLimitValidator specifies a max input-value limit validator
@@ -46,6 +54,10 @@ func WithInputLimitValidator(inputMax int) Option {
 		server.validators = append(server.validators, func(TSRequest tySugRequest) error {
 			if len(TSRequest.Input) > inputMax {
 				return fmt.Errorf("WithInputLimitValidator input exceeds server specified maximum of %d bytes", inputMax)
+			}
+
+			if len(TSRequest.Input) == 0 {
+				return errors.New("WithInputLimitValidator input may not be empty")
 			}
 
 			return nil
