@@ -13,6 +13,8 @@ const (
 	QwertyUS Layout = "qwerty-us"
 )
 
+const missingCharPenalty = 3 // @todo arbitrary penalty, find a proper basis for this
+
 type keyGrid map[string]coordinates
 
 var (
@@ -79,7 +81,7 @@ func (kd KeyDist) CalculateDistance(input, ref string) float64 {
 		if i >= len(ref) {
 
 			// @todo missing characters should have a cost, decide on a correct punishment value
-			score += float64(1 * (len(input) - len(ref)))
+			score += float64(missingCharPenalty * (len(input) - len(ref)))
 			break
 		}
 
