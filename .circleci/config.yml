@@ -2,16 +2,13 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
-  build:
+  build-and-test:
     docker:
-      # specify the version
       - image: circleci/golang:latest
 
     working_directory: /go/src/github.com/Dynom/TySug
     steps:
       - checkout
-
-      # specify any bash command here prefixed with `run: `
       - run: go version
       - run: for p in GOPATH GOBIN GOROOT; do echo "${p} ${!p}"; done
       - run: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
@@ -21,3 +18,39 @@ jobs:
       - run: gometalinter ./...
       - run: go test -test.v -test.cover -test.race -test.coverprofile=coverage.txt -test.covermode=atomic ./... 
       - run: bash <(curl -s https://codecov.io/bash)
+
+  publish-image:
+    docker:
+      - image: circleci/golang:latest
+
+    working_directory: /go/src/github.com/Dynom/TySug
+    steps:
+      - checkout
+      - run:
+          name: Building docker image
+          command: |
+            TAG=${CIRCLE_TAG:-devel}
+            docker build -t dynom/tysug:${TAG} \
+                --build-arg VERSION=${TAG} \
+                --build-arg GIT_REF=${CIRCLE_SHA1} \
+                . &&
+            docker tag dynom/tysug:${TAG} dynom/tysug:latest
+      - run: #docker login # @todo, figure out how to login, without exposing my creds -_-'
+      - run: docker push dynom/tysug
+
+workflows:
+  version: 2
+  build-test-push:
+    jobs:
+      - build-and-test:
+          filters:
+            tags:
+              only: /.*/
+      - publish-image:
+          requires:
+            - build-and-test
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/
