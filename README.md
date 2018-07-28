@@ -7,12 +7,15 @@
 [![Microbadger](https://images.microbadger.com/badges/image/dynom/tysug.svg)](https://microbadger.com/images/dynom/tysug)
 
 TySug is a keyboard layout aware alternative word suggester. It can be used as both a library and a webservice.
+![shcool](https://raw.githubusercontent.com/Dynom/TySug/master/docs/shcool.jpg)
 
 The primary supported use-case is to help with spelling mistakes against short popular word lists (e.g. domain names). 
-Which is useful in helping to prevent typos in e.g. e-mail addresses. 
+Which is useful in helping to prevent typos in e.g. e-mail addresses, detect spam, phishing ([Typosquatting](https://en.m.wikipedia.org/wiki/Typosquatting)), etc. 
 
 The goal is to provide an extensible library that helps with finding possible spelling errors. You can use it 
 out-of-the-box as a library, a webservice or as a set of packages to build your own application.
+
+Currently it's a fairly naive approach and not (yet) backed by ML.
 
 
 # Using TySug
@@ -186,3 +189,26 @@ func SuggestAlternative(email string, domains []string) (string, float64) {
     return email, score
 }
 ```
+
+# Typos
+Dealing with typos is complicated and heavily context dependent.
+
+- Atomic typos -- Typing a (contextual) incorrect, but correctly spelled word (e.g.: _beer_ where you meant: _beet_).
+- Intentional typos -- Typing "[teh](https://en.m.wikipedia.org/wiki/Teh)" instead of "the".
+- Marking Typos -- Intentional "typos" (e.g.: Bee5^Hr -> _Beer_ or "World Wide Mess^WWeb" -> _World Wide Web_.) 
+
+# Resources
+
+- https://www.digitalcoding.com/tools/typo-generator.html
+- http://aspell.net 
+
+# Further reading
+
+- How Difficult is it to Develop a Perfect Spell-checker? A Cross-linguistic Analysis through Complex Network Approach - [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.146.4390](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.146.4390)
+- Typographical and Orthographical Spelling Error Correction - [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.70.9592](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.70.9592)
+- How to Write a Spelling Corrector - [https://norvig.com/spell-correct.html](https://norvig.com/spell-correct.html)
+- Using the Web for Language Independent Spellchecking and Autocorrection - [http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/36180.pdf](http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/36180.pdf)
+- Spellchecking by computer - [https://www.dcs.bbk.ac.uk/..roger/spellchecking.html](https://www.dcs.bbk.ac.uk/~roger/spellchecking.html)
+
+# Wishlist
+- Support for Marking Typos. -- Probably not particularly useful, but seems fun to implement.

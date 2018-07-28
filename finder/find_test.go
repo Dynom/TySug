@@ -152,7 +152,8 @@ func TestMeetsLengthTolerance(t *testing.T) {
 }
 
 func BenchmarkSliceOrMap(b *testing.B) {
-	size := 50
+	// With sets of more than 20 elements, maps become more efficient. (Not including setup costs)
+	size := 20
 	var hashMap = make(map[int]int, size)
 	var list = make([]int, size)
 

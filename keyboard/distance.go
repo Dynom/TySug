@@ -13,6 +13,8 @@ const (
 	QwertyUS Layout = "qwerty-us"
 )
 
+const missingCharPenalty = 3 // @todo arbitrary penalty, find a proper basis for this
+
 type keyGrid map[string]coordinates
 
 var (
@@ -21,10 +23,16 @@ var (
 	// we might want to allow printable symbols with the same coordinates as their un-shifted counterfeit
 	keyboardLayouts = map[Layout][]string{
 		QwertyUS: {
-			"`1234567890-=",
-			" qwertyuiop[]\\",
-			" asdfghjkl;'",
-			" zxcvbnm,./",
+			"`   1   2   3   4   5   6   7   8   9   0   -   =",
+			"",
+			"",
+			"      q   w   e   r   t   y   u   i   o   p   [   ]   \\",
+			"",
+			"",
+			"       a   s   d   f   g   h   j   k   l   ;   '",
+			"",
+			"",
+			"         z   x   c   v   b   n   m   ,   .   /",
 		},
 		/*
 			"azerty-fr": {
@@ -79,7 +87,7 @@ func (kd KeyDist) CalculateDistance(input, ref string) float64 {
 		if i >= len(ref) {
 
 			// @todo missing characters should have a cost, decide on a correct punishment value
-			score += float64(1 * (len(input) - len(ref)))
+			score += float64(missingCharPenalty * (len(input) - len(ref)))
 			break
 		}
 

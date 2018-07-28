@@ -1,0 +1,24 @@
+{
+  "Cyclo": 10,
+  "Deadline": "5m",
+  "Vendor": true,
+  "Test": true,
+  "EnableAll": true,
+  "Enable": [
+    "testify",
+    "test",
+    "gofmt",
+    "megacheck",
+    "nakedret",
+    "misspell",
+    "gosec"
+  ],
+  "Disable": [
+    "gotype",
+    "errcheck"
+  ],
+  "Exclude": [
+    "Errors unhandled",
+    "Potential file inclusion via variable"
+  ]
+}

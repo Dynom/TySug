@@ -16,25 +16,46 @@ func TestGetBestMatch(t *testing.T) {
 		Expect string
 	}{
 		{Input: "bee4", List: []string{"beer", "beef"}, Expect: "beer"},
+		{Input: "bee4", List: []string{"beef", "beer"}, Expect: "beer"},
+
+		{Input: "bee5", List: []string{"beer", "beef"}, Expect: "beer"},
 		{Input: "bee5", List: []string{"beef", "beer"}, Expect: "beer"},
 		{Input: "bee5", List: []string{"beef", "beer", "beast"}, Expect: "beer"},
 		{Input: "bee5", List: []string{"beef", "beer", "ben"}, Expect: "beer"},
 
+		{Input: "beeg", List: []string{"beef", "beer", "ben"}, Expect: "beef"},
+		{Input: "beev", List: []string{"beef", "beer", "ben"}, Expect: "beef"},
+		{Input: "beeb", List: []string{"beef", "beer", "ben"}, Expect: "beef"},
+
 		{Input: "applejuice", List: []string{"apple", "pqqamqzxom", "excellent"}, Expect: "apple"},
+
+		{
+			Input:  "bee5",
+			Expect: "beer",
+			List: []string{
+				"veer", "neer", "heer", "geer", "bwer", "bser", "bder", "brer", "b4er", "b3er", "bewr", "besr", "bedr", "berr",
+				"be4r", "be3r", "beee", "beed", "beer", "beef", "beet", "bee4", "eer", "ber", "ber", "eber", "bere", "bbeer",
+				"beeer", "beeer", "beerr",
+			},
+		},
 	}
 
-	kd := New(Default)
+	kd := New(QwertyUS)
 	for _, td := range testData {
 		result, distance := kd.FindNearest(td.Input, td.List)
-		t.Logf("%s -> %s (%f)", td.Input, result, distance)
 		if td.Expect != result {
 			t.Errorf("Expected '%s' to match '%s', instead I got '%s' with distance %f, %+v",
 				td.Input, td.Expect, result, distance, td)
+			for _, ref := range td.List {
+				t.Logf("ref '%s', distance %f", ref, kd.CalculateDistance(td.Input, ref))
+			}
+
 		}
 	}
 }
 
 func TestCalculateDistance(t *testing.T) {
+	t.Skip("Not particularly useful, mostly for debugging")
 	testData := []struct {
 		Input    string
 		Ref      string
@@ -76,6 +97,9 @@ func TestGetDistance(t *testing.T) {
 		{A: coordinates{X: 0, Y: 0}, B: coordinates{X: 100, Y: 0}, Distance: 100},
 		{A: coordinates{X: 1, Y: 2}, B: coordinates{X: 1, Y: 2}, Distance: 0},
 		{A: coordinates{X: 10, Y: 20}, B: coordinates{X: 20, Y: 10}, Distance: 14.14},
+
+		{A: coordinates{X: 20, Y: 0}, B: coordinates{X: 18, Y: 1}, Distance: 2.236}, // X: -2, Y +1
+		{A: coordinates{X: 20, Y: 0}, B: coordinates{X: 19, Y: 2}, Distance: 2.236}, // X: -1, Y +2
 	}
 
 	for _, td := range testData {
@@ -91,9 +115,10 @@ func TestGetDistance(t *testing.T) {
 func TestFindNearestPenaltyScore(t *testing.T) {
 	d := New(Default)
 	_, s := d.FindNearest("foobar", []string{"f"})
+	expected := 5 * missingCharPenalty
 
-	if s != 5 {
-		t.Errorf("Expected a penalty of 5, instead I got: %f", s)
+	if int(s) != expected {
+		t.Errorf("Expected a penalty of %d, instead I got: %f", expected, s)
 	}
 }
 
