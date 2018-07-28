@@ -7,6 +7,7 @@
 [![Microbadger](https://images.microbadger.com/badges/image/dynom/tysug.svg)](https://microbadger.com/images/dynom/tysug)
 
 TySug is a keyboard layout aware alternative word suggester. It can be used as both a library and a webservice.
+
 ![shcool](https://raw.githubusercontent.com/Dynom/TySug/master/docs/shcool.jpg)
 
 The primary supported use-case is to help with spelling mistakes against short popular word lists (e.g. domain names). 
