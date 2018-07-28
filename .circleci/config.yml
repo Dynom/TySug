@@ -19,7 +19,7 @@ jobs:
       - run: go test -test.v -test.cover -test.race -test.coverprofile=coverage.txt -test.covermode=atomic ./... 
       - run: bash <(curl -s https://codecov.io/bash)
 
-  build-image:
+  publish-image:
     docker:
       - image: circleci/golang:latest
 
@@ -35,34 +35,19 @@ jobs:
                 --build-arg GIT_REF=${CIRCLE_SHA1} \
                 . &&
             docker tag dynom/tysug:${TAG} dynom/tysug:latest
-
-  push-image:
-    docker:
-      - image: circleci/golang:latest
-
-    working_directory: /go/src/github.com/Dynom/TySug
-    steps:
       - run: docker push dynom/tysug
 
 workflows:
   version: 2
   build-test-push:
     jobs:
-      - lint-and-test:
+      - build-and-test:
           filters:
             tags:
               only: /.*/
-      - build-image:
+      - publish-image:
           requires:
-            - lint-and-test
-          filters:
-            tags:
-              only: /v[0-9]+(\.[0-9]+)*/
-            branches:
-              ignore: /.*/
-      - push-image:
-          requires:
-            - build-image
+            - build-and-test
           filters:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
