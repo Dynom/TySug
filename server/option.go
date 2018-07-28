@@ -51,17 +51,21 @@ func createCORSType(allowedOrigins []string) *cors.Cors {
 // WithInputLimitValidator specifies a max input-value limit validator
 func WithInputLimitValidator(inputMax int) Option {
 	return func(server *TySugServer) {
-		server.validators = append(server.validators, func(TSRequest tySugRequest) error {
-			if len(TSRequest.Input) > inputMax {
-				return fmt.Errorf("WithInputLimitValidator input exceeds server specified maximum of %d bytes", inputMax)
-			}
+		server.validators = append(server.validators, createInputLimitValidator(inputMax))
+	}
+}
 
-			if len(TSRequest.Input) == 0 {
-				return errors.New("WithInputLimitValidator input may not be empty")
-			}
+func createInputLimitValidator(inputMax int) Validator {
+	return func(TSRequest tySugRequest) error {
+		if len(TSRequest.Input) > inputMax {
+			return fmt.Errorf("WithInputLimitValidator input exceeds server specified maximum of %d bytes", inputMax)
+		}
 
-			return nil
-		})
+		if len(TSRequest.Input) == 0 {
+			return errors.New("WithInputLimitValidator input may not be empty")
+		}
+
+		return nil
 	}
 }
 

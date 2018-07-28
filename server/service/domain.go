@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 
 	"github.com/Dynom/TySug/finder"
 	"github.com/Dynom/TySug/keyboard"
@@ -24,13 +25,15 @@ func NewDomain(references []string, logger *logrus.Logger, options ...finder.Opt
 	return Service{
 		scorer,
 		logger,
+		references,
 	}, nil
 }
 
 // Service is the service type
 type Service struct {
-	finder *finder.Finder
-	logger *logrus.Logger
+	finder     *finder.Finder
+	logger     *logrus.Logger
+	references []string
 }
 
 // Find returns the nearest reference
@@ -56,6 +59,11 @@ func (s Service) Find(ctx context.Context, input string) (string, float64, bool)
 
 func algJaroWinkler() finder.Algorithm {
 	return func(a, b string) float64 {
-		return smetrics.JaroWinkler(a, b, .7, 4)
+		var prefixLength = 4
+		if al := len(a); al == len(b) && al > 8 {
+			prefixLength = int(math.Round(float64(al) / 1.5))
+		}
+
+		return smetrics.JaroWinkler(a, b, .7, prefixLength)
 	}
 }

@@ -22,7 +22,9 @@ var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
 
-// These constants hold the value of the lowest and highest possible scores
+// These constants hold the value of the lowest and highest possible scores. Compatible with JSON serialisation.
+// It's not ideal to mix presentation with business logic but in this instance it was convenient and similarly
+// effective as math.Inf(-1)
 const (
 	WorstScoreValue = -1 * math.MaxFloat32
 	BestScoreValue  = math.MaxFloat32
@@ -65,9 +67,6 @@ func (t Finder) FindCtx(ctx context.Context, input string) (string, float64, boo
 
 // FindTopRankingCtx returns a list (of at least one element) of references with the same "best" score
 func (t Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string, float64, bool) {
-
-	// Initial value, compatible with JSON serialisation. It's not ideal to mix presentation with business logic
-	// but in this instance it was convenient and similarly effective to math.Inf(-1)
 	var hs = WorstScoreValue
 
 	// Exact matches
@@ -83,7 +82,7 @@ func (t Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string, 
 		default:
 		}
 
-		// Test if the input length is much less, making it an unlikely typo.
+		// Test if the input length differs too much from the reference, making it an unlikely typo.
 		if !meetsLengthTolerance(t.LengthTolerance, input, ref) {
 			continue
 		}

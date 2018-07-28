@@ -111,12 +111,12 @@ func buildConfig(fileName string) (Config, error) {
 
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		fmt.Printf("Unable to open 'config.yml', reason: %s\n%s", err, b)
+		fmt.Printf("Unable to open '%s', reason: %s\n%s", fileName, err, b)
 	}
 
 	err = yaml.Unmarshal(b, &c)
 	if err != nil {
-		fmt.Printf("Unable to unmarshal 'config.yml', reason: %s\n%s", err, b)
+		fmt.Printf("Unable to unmarshal '%s', reason: %s\n%s", fileName, err, b)
 	}
 
 	return c, nil
