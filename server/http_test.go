@@ -108,6 +108,50 @@ func TestNewHTTP(t *testing.T) {
 	}
 }
 
+func TestConfigureProfiler(t *testing.T) {
+
+	t.Run("Testing the WriteTimeout", func(t *testing.T) {
+		s := TySugServer{server: &http.Server{}}
+		configureProfiler(s, http.NewServeMux())
+		if s.server.WriteTimeout < 30 {
+			t.Errorf("Expected a write timeout of at least 30 seconds when debugging is enabled.\n%+v", s)
+		}
+	})
+
+	t.Run("Testing if we fall back to /debug/", func(t *testing.T) {
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/debug/pprof/", nil)
+
+		mux := http.NewServeMux()
+		configureProfiler(TySugServer{server: &http.Server{}}, mux)
+		mux.ServeHTTP(w, r)
+
+		if w.Code != 200 {
+			t.Error("Expected the default route to be available under /debug/")
+		}
+	})
+
+	t.Run("Testing if listen on the custom prefix", func(t *testing.T) {
+		const prefix = "213c06c51ed"
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/"+prefix+"/pprof/", nil)
+
+		s := TySugServer{server: &http.Server{}}
+		s.profConfig.Prefix = prefix
+
+		mux := http.NewServeMux()
+		configureProfiler(s, mux)
+		mux.ServeHTTP(w, r)
+
+		if w.Code != 200 {
+			t.Errorf("Expected the custom route to be available under /%s/.\n%+v", prefix, w)
+		}
+	})
+
+}
+
 func createStubbedTySugRequest(r io.Reader) (tySugRequest, error) {
 	req := httptest.NewRequest(http.MethodPost, "/", r)
 	return getRequestFromHTTPRequest(req)
