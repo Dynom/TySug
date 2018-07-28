@@ -29,13 +29,14 @@ jobs:
             TAG=${CIRCLE_TAG:-devel}
             docker build -t dynom/tysug:${TAG} \
                 --build-arg VERSION=${TAG} \
+                --build-arg GIT_REF=${CIRCLE_SHA1} \
                 . &&
             docker tag dynom/tysug:${TAG} dynom/tysug:latest
 
   push-image:
     working_directory: /go/src/github.com/Dynom/TySug
     steps:
-      -run: docker push dynom/tysug
+      - run: docker push dynom/tysug
 
 workflows:
   version: 2
@@ -55,7 +56,7 @@ workflows:
               ignore: /.*/
       - push-image:
           requires:
-            - lint-and-test
+            - build-image
           filters:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
