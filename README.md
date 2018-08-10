@@ -200,8 +200,8 @@ Dealing with typos is complicated and heavily context dependent.
 
 # Resources
 
-- https://www.digitalcoding.com/tools/typo-generator.html
-- http://aspell.net 
+- [https://www.digitalcoding.com/tools/typo-generator.html](https://www.digitalcoding.com/tools/typo-generator.html)
+- [http://aspell.net](http://aspell.net) 
 
 # Further reading
 
@@ -212,4 +212,4 @@ Dealing with typos is complicated and heavily context dependent.
 - Spellchecking by computer - [https://www.dcs.bbk.ac.uk/..roger/spellchecking.html](https://www.dcs.bbk.ac.uk/~roger/spellchecking.html)
 
 # Wishlist
-- Support for Marking Typos. -- Probably not particularly useful, but seems fun to implement.
+- Support for [Marking Typos](https://en.wikipedia.org/wiki/Typographical_error#Marking_typos). -- Probably not particularly useful, but seems fun to implement.
