@@ -54,7 +54,7 @@ _`curl -s "http://host:port/list/domains" --data-binary '{"input": "gmail.co"}' 
 
 ### The path /list/< name >
 
-The name corresponds with a list definition in the [config.yml](https://github.com/Dynom/TySug/blob/master/config.yml). Using this approach the service can be used for various 
+The name corresponds with a list definition in the [config.toml](https://github.com/Dynom/TySug/blob/master/config.toml). Using this approach the service can be used for various 
 types of data. This is both for efficiency (shorter lists to iterate over) and to be more opinionated. when no list by 
 that name is found, a 404 is returned.
 
