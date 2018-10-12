@@ -54,7 +54,7 @@ func TestBuildConfig(t *testing.T) {
 		t.Errorf("Expected InputLengthMax to be 50, instead it was %d", c.Client.InputLengthMax)
 	}
 
-	if c.Server.Profiler.Enable == false {
+	if !c.Server.Profiler.Enable {
 		t.Error("Expected the profile to be enabled")
 	}
 
