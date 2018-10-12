@@ -84,7 +84,7 @@ func NewHTTP(sr ServiceRegistry, mux *http.ServeMux, options ...Option) TySugSer
 		opt(&tySug)
 	}
 
-	var handler http.Handler = defaultHeaderHandler(createRequestIDHandler(mux))
+	var handler http.Handler = createRequestIDHandler(mux)
 	for _, h := range tySug.handlers {
 		handler = h(handler)
 	}

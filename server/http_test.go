@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Dynom/TySug/server/service"
+
 	"github.com/sirupsen/logrus/hooks/test"
 )
 
@@ -147,6 +149,64 @@ func TestConfigureProfiler(t *testing.T) {
 
 		if w.Code != 200 {
 			t.Errorf("Expected the custom route to be available under /%s/.\n%+v", prefix, w)
+		}
+	})
+}
+
+func TestHeaders(t *testing.T) {
+
+	// Setting up the service registry
+	sr := NewServiceRegistry()
+	log, _ := test.NewNullLogger()
+	svc, err := service.NewDomain([]string{"foo"}, log)
+	if err != nil {
+		t.Error(err)
+	}
+
+	sr.Register("test", svc)
+
+	t.Run("No extra headers defined", func(t *testing.T) {
+		h := NewHTTP(sr, http.NewServeMux(),
+			WithDefaultHeaders(nil),
+		)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/list/test", strings.NewReader(`{"input": "foo"}`))
+
+		h.server.Handler.ServeHTTP(w, r)
+
+		if w.Code != 200 {
+			t.Errorf("Sanity check failed, expecting a successful request. Instead I received: %+v", w.Body)
+		}
+
+		if h := w.Header().Get("X-Test-Header"); h != "" {
+			t.Errorf("Expecting the test header to not be defined. Instead I got: %+v", h)
+		}
+	})
+
+	t.Run("With extra headers defined", func(t *testing.T) {
+		h := NewHTTP(sr, http.NewServeMux(),
+			WithDefaultHeaders([]Header{
+				{Name: "X-Test-Header", Value: "beep"},
+				{Name: "X-Beep", Value: "42"},
+			}),
+		)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/list/test", strings.NewReader(`{"input": "foo"}`))
+
+		h.server.Handler.ServeHTTP(w, r)
+
+		if w.Code != 200 {
+			t.Errorf("Sanity check failed, expecting a successful request. Instead I received: %+v", w.Body)
+		}
+
+		if h := w.Header().Get("X-Test-Header"); h != "beep" {
+			t.Errorf("Expecting the test header 'X-Test-Header' to be defined.")
+		}
+
+		if h := w.Header().Get("X-Beep"); h != "42" {
+			t.Errorf("Expecting the test header 'X-Beep' to be defined.")
 		}
 	})
 

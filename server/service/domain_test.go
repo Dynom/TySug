@@ -3,11 +3,25 @@ package service
 import (
 	"testing"
 
+	"github.com/Dynom/TySug/finder"
+
 	"context"
 
 	"github.com/sirupsen/logrus/hooks/test"
 )
 
+func TestNewDomainWithError(t *testing.T) {
+	log, _ := test.NewNullLogger()
+
+	_, err := NewDomain([]string{}, log, func(sug *finder.Finder) {
+		// Triggering the error in Finder
+		sug.Alg = nil
+	})
+
+	if err == nil {
+		t.Error("Expecting an error to have been thrown.")
+	}
+}
 func TestServiceFindSimilarWords(t *testing.T) {
 	l, _ := test.NewNullLogger()
 
