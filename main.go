@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"github.com/BurntSushi/toml"
+
 	"github.com/Dynom/TySug/server"
 	"github.com/Dynom/TySug/server/service"
 	"github.com/sirupsen/logrus"
@@ -11,30 +13,27 @@ import (
 	"io/ioutil"
 
 	"os"
-
-	"gopkg.in/yaml.v2"
 )
 
 // Config holds TySug's central config parameters
 type Config struct {
-	References map[string][]string `yaml:"references"`
+	References map[string][]string `toml:"references"`
 	Client     struct {
-		//ReferencesMax  int `yaml:"referencesMax"`
-		InputLengthMax int `yaml:"inputLengthMax"`
-	} `yaml:"client"`
+		InputLengthMax int `toml:"inputLengthMax"`
+	} `toml:"client"`
 	CORS struct {
-		AllowedOrigins []string `yaml:"allowedOrigins"`
-	} `yaml:"CORS"`
+		AllowedOrigins []string `toml:"allowedOrigins"`
+	} `toml:"CORS"`
 	Server struct {
-		ListenOn string `yaml:"listenOn"`
+		ListenOn string `toml:"listenOn"`
 		Log      struct {
-			Level string `yaml:"level"`
-		} `yaml:"log"`
+			Level string `toml:"level"`
+		} `toml:"log"`
 		Profiler struct {
-			Enable bool   `yaml:"enable"`
-			Prefix string `yaml:"prefix"`
-		} `yaml:"profiler"`
-	} `yaml:"server"`
+			Enable bool   `toml:"enable"`
+			Prefix string `toml:"prefix"`
+		} `toml:"profiler"`
+	} `toml:"server"`
 }
 
 // Version contains the app version, the value is changed during compile time to the appropriate Git tag
@@ -44,7 +43,7 @@ func main() {
 	var config Config
 	var err error
 
-	config, err = buildConfig("config.yml")
+	config, err = buildConfig("config.toml")
 
 	if err != nil {
 		panic(err)
@@ -114,9 +113,9 @@ func buildConfig(fileName string) (Config, error) {
 		fmt.Printf("Unable to open '%s', reason: %s\n%s", fileName, err, b)
 	}
 
-	err = yaml.Unmarshal(b, &c)
+	md, err := toml.Decode(string(b), &c)
 	if err != nil {
-		fmt.Printf("Unable to unmarshal '%s', reason: %s\n%s", fileName, err, b)
+		fmt.Printf("Unable to unmarshal '%s', reason: %s\n%s\n%+v", fileName, err, b, md)
 	}
 
 	return c, nil
