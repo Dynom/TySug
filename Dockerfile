@@ -25,6 +25,6 @@ LABEL org.label-schema.description="The TySug webservice Docker image. Suggestin
 COPY --from=base ["/etc/ssl/certs/ca-certificates.crt", "/etc/ssl/certs/ca-certificates.crt"]
 COPY --from=base ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
 COPY --from=build /go/bin/TySug /
-COPY ["config.yml", "/"]
+COPY ["config.toml", "/"]
 
 CMD ["/TySug"]
