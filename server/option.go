@@ -52,7 +52,7 @@ func WithCORS(allowedOrigins []string) Option {
 	c := createCORSType(allowedOrigins)
 
 	return func(server *TySugServer) {
-		if allowedOrigins == nil {
+		if len(allowedOrigins) == 0 {
 			server.Logger.Warn("Allowing any Origin. This is an insecure CORS setup, this is NOT recommended for real world usage!")
 		}
 

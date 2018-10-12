@@ -2,6 +2,8 @@ package server
 
 import (
 	"testing"
+
+	"github.com/sirupsen/logrus/hooks/test"
 )
 
 func TestWithInputLimitValidator(t *testing.T) {
@@ -35,15 +37,36 @@ func TestCreateInputLimitValidator(t *testing.T) {
 	}
 }
 
-func TestWithCORSOneOrigin(t *testing.T) {
-	s := TySugServer{}
+func TestWithCORS(t *testing.T) {
+	t.Run("OneOrigin", func(t *testing.T) {
+		s := TySugServer{}
 
-	hc := len(s.handlers)
-	WithCORS([]string{"localhost"})(&s)
+		hc := len(s.handlers)
+		WithCORS([]string{"localhost"})(&s)
 
-	if l := len(s.handlers); hc > l || l != 1 {
-		t.Errorf("Expected exactly one handler, instead I got %d.", l)
-	}
+		if l := len(s.handlers); hc > l || l != 1 {
+			t.Errorf("Expected exactly one handler, instead I got %d.", l)
+		}
+	})
+
+	t.Run("NoOrigin", func(t *testing.T) {
+		s := TySugServer{}
+		log, hook := test.NewNullLogger()
+		s.Logger = log
+
+		hc := len(s.handlers)
+		lmc := len(hook.Entries)
+		WithCORS([]string{})(&s)
+
+		if l := len(s.handlers); hc > l || l != 1 {
+			t.Errorf("Expected exactly one handler, instead I got %d.", l)
+		}
+
+		// We're expecting a log message warning about unsafe usage since no origin was specified.
+		if l := len(hook.Entries); lmc >= l || l != 1 {
+			t.Errorf("Expected exactly one log messages, instead I got %d.", l)
+		}
+	})
 }
 
 func TestWithGzipHandler(t *testing.T) {
