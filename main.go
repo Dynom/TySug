@@ -26,7 +26,11 @@ type Config struct {
 	} `toml:"CORS"`
 	Server struct {
 		ListenOn string `toml:"listenOn"`
-		Log      struct {
+		Headers  []struct {
+			Name  string `toml:"name"`
+			Value string `toml:"value"`
+		} `toml:"headers"`
+		Log struct {
 			Level string `toml:"level"`
 		} `toml:"log"`
 		Profiler struct {
@@ -82,7 +86,16 @@ func main() {
 		sr.Register(label, svc)
 	}
 
+	var headers []server.Header
+	for _, h := range config.Server.Headers {
+		headers = append(headers, server.Header{
+			Name:  h.Name,
+			Value: h.Value,
+		})
+	}
+
 	options := []server.Option{
+		server.WithDefaultHeaders(headers),
 		server.WithLogger(logger),
 		server.WithCORS(config.CORS.AllowedOrigins),
 		server.WithInputLimitValidator(config.Client.InputLengthMax),

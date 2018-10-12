@@ -28,11 +28,34 @@ func WithLogger(logger *logrus.Logger) Option {
 	}
 }
 
+type Header struct {
+	Name  string
+	Value string
+}
+
+func WithDefaultHeaders(headers []Header) Option {
+	return func(server *TySugServer) {
+		server.handlers = append(server.handlers, func(handler http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				for _, h := range headers {
+					w.Header().Set(h.Name, h.Value)
+				}
+
+				handler.ServeHTTP(w, req)
+			})
+		})
+	}
+}
+
 // WithCORS adds the CORS handler to the request handling
 func WithCORS(allowedOrigins []string) Option {
 	c := createCORSType(allowedOrigins)
 
 	return func(server *TySugServer) {
+		if allowedOrigins == nil {
+			server.Logger.Warn("Allowing any Origin. This is an insecure CORS setup, this is NOT recommended for real world usage!")
+		}
+
 		server.handlers = append(server.handlers, c.Handler)
 	}
 }
