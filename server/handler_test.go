@@ -3,6 +3,8 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"sync"
 	"testing"
 
 	"bytes"
@@ -142,4 +144,81 @@ func TestCORS(t *testing.T) {
 	if !strings.Contains(resultMethods, reqMethod) {
 		t.Errorf("Expected the methods to be present")
 	}
+}
+
+func BenchmarkRequestIDGeneration(b *testing.B) {
+	h := createRequestIDHandler(noopHandler{})
+	request := httptest.NewRequest(http.MethodPost, "/list/foo", nil)
+	recorder := httptest.NewRecorder()
+
+	b.Run("implementation", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			h(recorder, request)
+		}
+
+		b.Logf("Last request ID is %s", recorder.Header().Get(HeaderRequestID))
+	})
+
+	b.Run("buffer", func(b *testing.B) {
+		var buf = strings.Builder{}
+		var lock = sync.Mutex{}
+		var result string
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			lock.Lock()
+			buf.Reset()
+			buf.WriteString("1228958371")
+			buf.WriteString("-")
+			buf.WriteString(strconv.Itoa(i))
+			result = buf.String()
+			lock.Unlock()
+		}
+
+		b.Logf("Last request ID is: %s", result)
+	})
+
+	b.Run("buffer custom", func(b *testing.B) {
+		var buf []byte
+		var lock = sync.Mutex{}
+		var result string
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			lock.Lock()
+			buf = []byte{}
+			buf = append(buf, "1228958371"...)
+			buf = append(buf, "-"...)
+			buf = append(buf, strconv.Itoa(i)...)
+			result = string(buf)
+			lock.Unlock()
+		}
+
+		b.Logf("Last request ID is: %s", result)
+	})
+
+	// The fastest (for short strings) and simplest solution
+	b.Run("string", func(b *testing.B) {
+		var foo = "1228958371"
+		var lock = sync.Mutex{}
+		var result string
+
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			lock.Lock()
+			result = foo + "-" + strconv.Itoa(i)
+			lock.Unlock()
+		}
+
+		b.Logf("Last request ID is: %s", result)
+	})
+}
+
+type noopHandler struct {
+}
+
+func (noopHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }

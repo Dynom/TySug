@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -44,15 +43,10 @@ func createRequestIDHandler(h http.Handler) http.HandlerFunc {
 
 	var requestCounter int
 	var lock = sync.Mutex{}
-	var buf = strings.Builder{}
 	return func(w http.ResponseWriter, r *http.Request) {
 		lock.Lock()
 		requestCounter++
-		buf.Reset()
-		buf.WriteString(instanceID)
-		buf.WriteString("-")
-		buf.WriteString(strconv.Itoa(requestCounter))
-		requestID := buf.String()
+		requestID := instanceID + "-" + strconv.Itoa(requestCounter)
 		lock.Unlock()
 
 		ctx := context.WithValue(r.Context(), CtxRequestID, requestID)
