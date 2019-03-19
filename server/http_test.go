@@ -186,9 +186,9 @@ func TestHeaders(t *testing.T) {
 
 	t.Run("With extra headers defined", func(t *testing.T) {
 		h := NewHTTP(sr, http.NewServeMux(),
-			WithDefaultHeaders([]Header{
-				{Name: "X-Test-Header", Value: "beep"},
-				{Name: "X-Beep", Value: "42"},
+			WithDefaultHeaders(http.Header{
+				"X-Test-Header": {"beep"},
+				"X-Beep":        {"42"},
 			}),
 		)
 

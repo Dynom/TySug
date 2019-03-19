@@ -28,22 +28,24 @@ func WithLogger(logger *logrus.Logger) Option {
 	}
 }
 
-type Header struct {
-	Name  string
-	Value string
-}
-
-func WithDefaultHeaders(headers []Header) Option {
+// WithDefaultHeaders sets the default headers to be used when writting a response.
+func WithDefaultHeaders(headers http.Header) Option {
 	return func(server *TySugServer) {
 		server.handlers = append(server.handlers, func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				for _, h := range headers {
-					w.Header().Set(h.Name, h.Value)
-				}
+				copyHeaders(w.Header(), headers)
 
 				handler.ServeHTTP(w, req)
 			})
 		})
+	}
+}
+
+func copyHeaders(dst, src http.Header) {
+	for name, values := range src {
+		for _, value := range values {
+			dst.Add(name, value)
+		}
 	}
 }
 

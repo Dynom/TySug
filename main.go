@@ -86,12 +86,9 @@ func main() {
 		sr.Register(label, svc)
 	}
 
-	var headers []server.Header
+	headers := http.Header{}
 	for _, h := range config.Server.Headers {
-		headers = append(headers, server.Header{
-			Name:  h.Name,
-			Value: h.Value,
-		})
+		headers.Add(h.Name, h.Value)
 	}
 
 	options := []server.Option{
