@@ -89,7 +89,7 @@ func TestContextCancel(t *testing.T) {
 
 	timeSpent := int(timeEnd.Sub(timeStart).Seconds() * 1000)
 
-	if timeSpent < 50 || timeSpent >= 130 {
+	if 50 > timeSpent || timeSpent >= 130 {
 		t.Errorf("Expected the context to cancel after one iteration")
 	}
 }
