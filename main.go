@@ -47,7 +47,10 @@ func main() {
 	var config Config
 	var err error
 
-	config = buildConfig("config.toml")
+	config, err = buildConfig("config.toml")
+	if err != nil {
+		panic(err)
+	}
 
 	overrideConfigFromEnv(&config)
 
@@ -108,20 +111,20 @@ func main() {
 	}
 }
 
-func buildConfig(fileName string) Config {
+func buildConfig(fileName string) (Config, error) {
 	c := Config{}
 
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		fmt.Printf("Unable to open '%s', reason: %s\n%s", fileName, err, b)
+		return c, fmt.Errorf("unable to open %q, reason: %s", fileName, err)
 	}
 
-	md, err := toml.Decode(string(b), &c)
+	_, err = toml.Decode(string(b), &c)
 	if err != nil {
-		fmt.Printf("Unable to unmarshal '%s', reason: %s\n%s\n%+v", fileName, err, b, md)
+		return c, fmt.Errorf("unable to unmarshal %q, reason: %s", fileName, err)
 	}
 
-	return c
+	return c, nil
 }
 
 func overrideConfigFromEnv(c *Config) {
