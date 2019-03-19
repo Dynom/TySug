@@ -28,7 +28,7 @@ func WithLogger(logger *logrus.Logger) Option {
 	}
 }
 
-// WithDefaultHeaders sets the default headers to be used when writting a response.
+// WithDefaultHeaders sets the default headers to be used when writing a response.
 func WithDefaultHeaders(headers http.Header) Option {
 	return func(server *TySugServer) {
 		server.handlers = append(server.handlers, func(handler http.Handler) http.Handler {

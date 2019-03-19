@@ -47,16 +47,9 @@ func main() {
 	var config Config
 	var err error
 
-	config, err = buildConfig("config.toml")
+	config = buildConfig("config.toml")
 
-	if err != nil {
-		panic(err)
-	}
-
-	err = overrideConfigFromEnv(&config)
-	if err != nil {
-		panic(err)
-	}
+	overrideConfigFromEnv(&config)
 
 	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{}
@@ -115,7 +108,7 @@ func main() {
 	}
 }
 
-func buildConfig(fileName string) (Config, error) {
+func buildConfig(fileName string) Config {
 	c := Config{}
 
 	b, err := ioutil.ReadFile(fileName)
@@ -128,10 +121,10 @@ func buildConfig(fileName string) (Config, error) {
 		fmt.Printf("Unable to unmarshal '%s', reason: %s\n%s\n%+v", fileName, err, b, md)
 	}
 
-	return c, nil
+	return c
 }
 
-func overrideConfigFromEnv(c *Config) error {
+func overrideConfigFromEnv(c *Config) {
 	if v, exists := os.LookupEnv("LISTEN_URL"); exists {
 		c.Server.ListenOn = v
 	}
@@ -151,6 +144,4 @@ func overrideConfigFromEnv(c *Config) error {
 			c.Server.Profiler.Enable = false
 		}
 	}
-
-	return nil
 }

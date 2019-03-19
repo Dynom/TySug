@@ -22,7 +22,7 @@ var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
 
-// These constants hold the value of the lowest and highest possible scores. Compatible with JSON serialisation.
+// These constants hold the value of the lowest and highest possible scores. Compatible with JSON serialization.
 // It's not ideal to mix presentation with business logic but in this instance it was convenient and similarly
 // effective as math.Inf(-1)
 const (
