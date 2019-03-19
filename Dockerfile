@@ -2,7 +2,7 @@ FROM golang:1 as build
 
 ARG VERSION
 
-WORKDIR /go/src/github.com/Dynom/TySug
+WORKDIR /TySug
 COPY . .
 
 RUN go test -test.short -test.v -test.race ./...

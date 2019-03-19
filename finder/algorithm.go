@@ -35,7 +35,5 @@ func NewWagnerFischer(insert, delete, substitution int) Algorithm {
 	}
 }
 func NewJaro() Algorithm {
-	return func(a, b string) float64 {
-		return smetrics.Jaro(a, b)
-	}
+	return smetrics.Jaro
 }

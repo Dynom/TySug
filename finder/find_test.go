@@ -80,16 +80,16 @@ func TestContextCancel(t *testing.T) {
 		t.Errorf("Error when constructing Finder, %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
 	timeStart := time.Now()
 	sug.FindCtx(ctx, "john")
 	timeEnd := time.Now()
 
-	timeSpent := int(timeEnd.Sub(timeStart).Seconds() * 100)
+	timeSpent := int(timeEnd.Sub(timeStart).Seconds() * 1000)
 
-	if timeSpent != 1 {
+	if 50 > timeSpent || timeSpent >= 130 {
 		t.Errorf("Expected the context to cancel after one iteration")
 	}
 }

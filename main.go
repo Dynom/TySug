@@ -48,15 +48,11 @@ func main() {
 	var err error
 
 	config, err = buildConfig("config.toml")
-
 	if err != nil {
 		panic(err)
 	}
 
-	err = overrideConfigFromEnv(&config)
-	if err != nil {
-		panic(err)
-	}
+	overrideConfigFromEnv(&config)
 
 	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{}
@@ -86,12 +82,9 @@ func main() {
 		sr.Register(label, svc)
 	}
 
-	var headers []server.Header
+	headers := http.Header{}
 	for _, h := range config.Server.Headers {
-		headers = append(headers, server.Header{
-			Name:  h.Name,
-			Value: h.Value,
-		})
+		headers.Add(h.Name, h.Value)
 	}
 
 	options := []server.Option{
@@ -123,18 +116,18 @@ func buildConfig(fileName string) (Config, error) {
 
 	b, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		fmt.Printf("Unable to open '%s', reason: %s\n%s", fileName, err, b)
+		return c, fmt.Errorf("unable to open %q, reason: %s", fileName, err)
 	}
 
-	md, err := toml.Decode(string(b), &c)
+	_, err = toml.Decode(string(b), &c)
 	if err != nil {
-		fmt.Printf("Unable to unmarshal '%s', reason: %s\n%s\n%+v", fileName, err, b, md)
+		return c, fmt.Errorf("unable to unmarshal %q, reason: %s", fileName, err)
 	}
 
 	return c, nil
 }
 
-func overrideConfigFromEnv(c *Config) error {
+func overrideConfigFromEnv(c *Config) {
 	if v, exists := os.LookupEnv("LISTEN_URL"); exists {
 		c.Server.ListenOn = v
 	}
@@ -154,6 +147,4 @@ func overrideConfigFromEnv(c *Config) error {
 			c.Server.Profiler.Enable = false
 		}
 	}
-
-	return nil
 }
