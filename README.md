@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/Dynom/TySug/branch/master/graph/badge.svg)](https://codecov.io/gh/Dynom/TySug)
 [![Microbadger](https://images.microbadger.com/badges/image/dynom/tysug.svg)](https://microbadger.com/images/dynom/tysug)
 
-TySug is a keyboard layout aware alternative word suggester. It can be used as both a library and a webservice.
+TySug is collection of packages, together they form a keyboard layout aware alternative word suggester. It can be used as both a library and a webservice.
 
 ![shcool](https://raw.githubusercontent.com/Dynom/TySug/master/docs/shcool.jpg)
 
@@ -20,6 +20,8 @@ Currently it's a fairly naive approach and not (yet) backed by ML.
 
 
 # Using TySug
+
+You can use TySug as stand-alone webservice to match against a known-list. If you have Docker you'll have it up and running in a few minutes. 
 
 ## TL;DR
 
@@ -58,8 +60,9 @@ The name corresponds with a list definition in the [config.toml](https://github.
 types of data. This is both for efficiency (shorter lists to iterate over) and to be more opinionated. when no list by 
 that name is found, a 404 is returned.
 
-## As a library
 
+## As a library
+TySug is a collection of stand-alone packages. In each library you can find a README covering the details.
 ```go
 import "github.com/Dynom/TySug/finder"
 ```
