@@ -3,6 +3,7 @@ module github.com/Dynom/TySug
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/NYTimes/gziphandler v1.0.1
+	github.com/alextanhongpin/stringdist v0.0.0-20181112144725-57e5fb016be2
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
 	github.com/rs/cors v1.6.0
 	github.com/sirupsen/logrus v1.1.1
