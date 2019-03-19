@@ -6,9 +6,6 @@ import (
 	"math"
 )
 
-// Algorithm the type to comply with to create your own algorithm
-type Algorithm func(a, b string) float64
-
 // Finder is the type to find the nearest reference
 type Finder struct {
 	referenceMap    map[string]struct{}
@@ -99,7 +96,7 @@ func (t Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string, 
 	return sameScore, hs, false
 }
 
-// meetsLengthTolerance checks if the input meets the length tolerance criteria. The percentage is based on the input
+// meetsLengthTolerance checks if the input meets the length tolerance criteria. The percentage is based on `input`
 func meetsLengthTolerance(t float64, input, reference string) bool {
 	if t <= 0 {
 		return true
