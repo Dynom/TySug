@@ -9,6 +9,7 @@ import (
 // Note that the return value must be greater than WorstScoreValue and less than BestScoreValue
 type Algorithm func(a, b string) float64
 
+// NewJaroWinklerDefaults returns the Jaro Winkler algorithm with 0.7 boost threshold and a prefix length of 4
 func NewJaroWinklerDefaults() Algorithm {
 	return NewJaroWinkler(0.7, 4)
 }
@@ -34,6 +35,8 @@ func NewWagnerFischer(insert, delete, substitution int) Algorithm {
 		return float64(-smetrics.WagnerFischer(a, b, insert, delete, substitution))
 	}
 }
+
+// NewJaro returns the default Jaro algorithm from smetrics
 func NewJaro() Algorithm {
 	return smetrics.Jaro
 }
