@@ -40,19 +40,19 @@ type Service struct {
 func (s Service) Find(ctx context.Context, input string) (string, float64, bool) {
 	suggestions, score, exact := s.finder.FindTopRankingCtx(ctx, input)
 
-	var suggestion string
-	if len(suggestions) > 1 {
-		suggestion, score = keyboard.New(keyboard.QwertyUS).FindNearest(input, suggestions)
-		s.logger.WithFields(logrus.Fields{
-			"input":                input,
-			"1st_pass__suggestion": suggestions[0],
-			"1st_pass_short_list":  suggestions,
-			"2nd_pass_suggestion":  suggestion,
-			"2nd_pass_score":       score,
-		}).Debug("Had multiple suggestions, applied the keyboard distance to narrow down.")
-	} else {
-		suggestion = suggestions[0]
+	if len(suggestions) == 1 {
+		return suggestions[0], score, exact
 	}
+
+	var suggestion string
+	suggestion, score = keyboard.New(keyboard.QwertyUS).FindNearest(input, suggestions)
+	s.logger.WithFields(logrus.Fields{
+		"input":                input,
+		"1st_pass__suggestion": suggestions[0],
+		"1st_pass_short_list":  suggestions,
+		"2nd_pass_suggestion":  suggestion,
+		"2nd_pass_score":       score,
+	}).Debug("Had multiple suggestions, applied the keyboard distance to narrow down.")
 
 	return suggestion, score, exact
 }
