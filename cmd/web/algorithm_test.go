@@ -1,4 +1,4 @@
-package main_test
+package main
 
 import (
 	"testing"
@@ -88,6 +88,60 @@ func TestAlgorithms(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestMailCheckSimilarity(t *testing.T) {
+	var domains = []string{"google.com", "gmail.com", "emaildomain.com", "comcast.net", "facebook.com", "msn.com"}
+
+	var cases = []struct {
+		input  string
+		expect string
+	}{
+		// These result in the same
+		{input: "gmailc.om", expect: "gmail.com"},
+		{input: "test@gmailc.om", expect: "gmail.com"},
+		{input: "test@emaildomain.co", expect: "emaildomain.com"},
+		{input: "test@gmail.con", expect: "gmail.com"},
+		{input: "test@gnail.con", expect: "gmail.com"},
+		{input: "test@GNAIL.con", expect: "gmail.com"},
+		{input: "test@#gmail.com", expect: "gmail.com"},
+		{input: "test@comcast.nry", expect: "comcast.net"},
+
+		// these don't result in the same, since the domains aren't known
+		// Mailcheck.js is more opinionated and performs a TLD correction against known TLD's when a domain name isn't known
+		{input: "test@hotmail.co", expect: "hotmail.com"},
+		{input: "test@randomsmallcompany.cmo", expect: "randomsmallcompany.com"},
+		{input: "test@con-artists.con", expect: "con-artists.com"},
+
+		// These don't result in the same, since the domains aren't know
+		{input: "test@homail.con", expect: "hotmail.com"},
+		{input: "test@yajoo.com", expect: "yahoo.com"},
+	}
+
+	sug, _ := finder.New(domains, finder.WithAlgorithm(algorithms[defaultTestAlgorithm]))
+	for _, tc := range cases {
+
+		// Normalizing the input, only extracting the domain
+		var domain string
+		if o := strings.LastIndex(tc.input, "@"); o >= 0 {
+			domain = tc.input[1+o:]
+		} else {
+			domain = tc.input
+		}
+
+		domain = strings.ToLower(domain)
+
+		// Testing
+		alt, score, _ := sug.Find(domain)
+		var similar string
+		if alt != tc.expect {
+			similar = "NOT similar"
+		} else {
+			similar = "    similar"
+		}
+
+		t.Logf("[%s] Mailcheck.js expects '%s' to result in '%s'. We came up with '%s' (score: %0.3f).", similar, domain, tc.expect, alt, score)
 	}
 }
 
