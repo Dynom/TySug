@@ -1,19 +1,19 @@
 FROM golang:1 as build
 
-ARG VERSION
+ARG VERSION="dev"
 
 WORKDIR /TySug
 COPY . .
 
 RUN go test -test.short -test.v -test.race ./...
-RUN CGO_ENABLED=0 go install -v -a -ldflags "-w -X main.Version=${VERSION}" ./...
+RUN CGO_ENABLED=0 GO111MODULE=on go build -v -a -ldflags "-w -X main.Version=${VERSION}" ./cmd/web
 
 FROM gcr.io/distroless/base as base
 
 FROM scratch
 
-ARG VERSION
-ARG GIT_REF
+ARG VERSION="dev"
+ARG GIT_REF="none"
 
 LABEL org.label-schema.description="The TySug webservice Docker image. Suggesting typo-alternatives" \
       org.label-schema.schema-version="1.0" \
@@ -24,7 +24,12 @@ LABEL org.label-schema.description="The TySug webservice Docker image. Suggestin
 
 COPY --from=base ["/etc/ssl/certs/ca-certificates.crt", "/etc/ssl/certs/ca-certificates.crt"]
 COPY --from=base ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
-COPY --from=build /go/bin/TySug /
-COPY ["config.toml", "/"]
+COPY --from=build ["/TySug/web", "/tysug"]
+COPY --from=build ["/TySug/cmd/web/config.toml", "/"]
 
-CMD ["/TySug"]
+# Takes presedence over the configuration.
+ENV LISTEN_URL="0.0.0.0:1337"
+EXPOSE 1337
+
+
+ENTRYPOINT ["/tysug"]
