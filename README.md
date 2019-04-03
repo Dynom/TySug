@@ -224,3 +224,7 @@ First of all: Awesome!
 Before contributing, _please create an issue with the thing you'd like to contribute_.
 
 Any contribution must be provided in the form of a PR and the CI build must pass. Any contribution, when relevant, must have tests proving correctness. The coding-style must be the Go standard, complemented by the community "[Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)" laundry list.
+
+# Security
+
+Any security related issues can be submitted as regular issues in the issue tracker. E-mail me directly if you don't want to disclose it publicly.
