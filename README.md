@@ -216,3 +216,11 @@ Dealing with typos is complicated and heavily context dependent.
 
 # Wishlist
 - Support for [Marking Typos](https://en.wikipedia.org/wiki/Typographical_error#Marking_typos). -- Probably not particularly useful, but seems fun to implement.
+
+# Contributing
+
+First of all: Awesome!
+
+Before contributing, _please create an issue with the thing you'd like to contribute_.
+
+Any contribution must be provided in the form of a PR and the CI build must pass. Any contribution, when relevant, must have tests proving correctness. The coding-style must be the Go standard, complemented by the community "[Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)" laundry list.
