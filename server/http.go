@@ -14,7 +14,7 @@ import (
 	"net/http/pprof"
 
 	"github.com/sirupsen/logrus"
-	"gopkg.in/tomb.v2"
+	tomb "gopkg.in/tomb.v2"
 )
 
 const maxBodySize = 1 << 20 // 1Mb
@@ -178,7 +178,7 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 		}).Debug("Completed new ranking request")
 
 		if !t.Alive() {
-			ctxLogger.Info("Request got cancelled")
+			ctxLogger.Info("Request got canceled")
 		}
 
 		response, err := json.Marshal(res)
