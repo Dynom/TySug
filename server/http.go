@@ -54,7 +54,7 @@ type pprofConfig struct {
 	Prefix string
 }
 
-// Validator is a type to validate a client request, returning a nil errors means all went well.
+// Validator is a type to validate a client request, returning a nil error means all went well.
 type Validator func(TSRequest tySugRequest) error
 
 // TySugServer the HTTP server
