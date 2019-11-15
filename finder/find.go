@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"sync"
 )
 
 // Finder is the type to find the nearest reference
@@ -12,6 +13,7 @@ type Finder struct {
 	reference       []string
 	Alg             Algorithm
 	LengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
+	lock            sync.RWMutex
 }
 
 // Errors
@@ -29,15 +31,9 @@ const (
 
 // New creates a new instance of Finder. The order of the list is significant
 func New(list []string, options ...Option) (*Finder, error) {
-	i := &Finder{
-		referenceMap: make(map[string]struct{}, len(list)),
-		reference:    list,
-	}
+	i := &Finder{}
 
-	for _, r := range list {
-		i.referenceMap[r] = struct{}{}
-	}
-
+	i.Refresh(list)
 	for _, o := range options {
 		o(i)
 	}
@@ -49,22 +45,38 @@ func New(list []string, options ...Option) (*Finder, error) {
 	return i, nil
 }
 
+// Refresh replaces the internal reference list.
+func (t *Finder) Refresh(list []string) {
+	rm := make(map[string]struct{}, len(list))
+	for _, r := range list {
+		rm[r] = struct{}{}
+	}
+
+	t.lock.Lock()
+	t.reference = list
+	t.referenceMap = rm
+	t.lock.Unlock()
+}
+
 // Find returns the best alternative a score and if it was an exact match or not.
 // Since algorithms can define their own upper-bound, there is no "best" value.
-func (t Finder) Find(input string) (string, float64, bool) {
+func (t *Finder) Find(input string) (string, float64, bool) {
 	matches, score, exact := t.FindTopRankingCtx(context.Background(), input)
 	return matches[0], score, exact
 }
 
 // FindCtx is the same as Find, with context support.
-func (t Finder) FindCtx(ctx context.Context, input string) (string, float64, bool) {
+func (t *Finder) FindCtx(ctx context.Context, input string) (string, float64, bool) {
 	matches, score, exact := t.FindTopRankingCtx(ctx, input)
 	return matches[0], score, exact
 }
 
 // FindTopRankingCtx returns a list (of at least one element) of references with the same "best" score
-func (t Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string, float64, bool) {
+func (t *Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string, float64, bool) {
 	var hs = WorstScoreValue
+
+	t.lock.RLock()
+	defer t.lock.RUnlock()
 
 	// Exact matches
 	if _, exists := t.referenceMap[input]; exists {
