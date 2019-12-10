@@ -18,3 +18,9 @@ func WithLengthTolerance(t float64) Option {
 		s.LengthTolerance = t
 	}
 }
+
+func WithBuckets(enable bool) Option {
+	return func(s *Finder) {
+		s.enableBuckets = enable
+	}
+}

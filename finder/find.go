@@ -11,9 +11,11 @@ import (
 type Finder struct {
 	referenceMap    map[string]struct{}
 	reference       []string
+	referenceBucket map[rune][]string
 	Alg             Algorithm
 	LengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
 	lock            sync.RWMutex
+	enableBuckets   bool
 }
 
 // Errors
@@ -33,10 +35,11 @@ const (
 func New(list []string, options ...Option) (*Finder, error) {
 	i := &Finder{}
 
-	i.Refresh(list)
 	for _, o := range options {
 		o(i)
 	}
+
+	i.Refresh(list)
 
 	if i.Alg == nil {
 		return i, ErrNoAlgorithmDefined
@@ -48,13 +51,23 @@ func New(list []string, options ...Option) (*Finder, error) {
 // Refresh replaces the internal reference list.
 func (t *Finder) Refresh(list []string) {
 	rm := make(map[string]struct{}, len(list))
+	rb := make(map[rune][]string, 26)
 	for _, r := range list {
 		rm[r] = struct{}{}
+
+		if t.enableBuckets {
+			l := rune(r[0])
+			if _, ok := rb[l]; !ok {
+				rb[l] = make([]string, 0, 128)
+			}
+			rb[l] = append(rb[l], r)
+		}
 	}
 
 	t.lock.Lock()
 	t.reference = list
 	t.referenceMap = rm
+	t.referenceBucket = rb
 	t.lock.Unlock()
 }
 
@@ -79,12 +92,20 @@ func (t *Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string,
 	defer t.lock.RUnlock()
 
 	// Exact matches
-	if _, exists := t.referenceMap[input]; exists {
+	if _, exists := t.referenceMap[input]; exists || len(input) == 0 {
 		return []string{input}, BestScoreValue, true
 	}
 
+	var list []string
+	r := rune(input[0])
+	if l, ok := t.referenceBucket[r]; ok {
+		list = l
+	} else {
+		list = t.reference
+	}
+
 	var sameScore = []string{input}
-	for _, ref := range t.reference {
+	for _, ref := range list {
 		select {
 		case <-ctx.Done():
 			return []string{input}, WorstScoreValue, false
