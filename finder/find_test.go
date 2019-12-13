@@ -2,8 +2,7 @@ package finder
 
 import (
 	"context"
-	"math"
-	"math/rand"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -152,102 +151,227 @@ func TestMeetsLengthTolerance(t *testing.T) {
 	}
 }
 
-// Preventing the compiler to inline
-var ceilA, ceilB int
+func TestFinder_FindTopRankingPrefixCtx(t *testing.T) {
+	refs := []string{
+		"abcdef",
+		"bcdef",
+	}
 
-func BenchmarkCeilOrNoCeil(b *testing.B) {
-	inputLen := 64
-	threshold := 0.195
-	b.Run("No Ceil", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			ceilA = int((float64(inputLen) * threshold) + 0.555)
-		}
-	})
+	type args struct {
+		input        string
+		prefixLength uint
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantList []string
+		wantErr  bool
+	}{
 
-	b.Run("Ceil", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			ceilB = int(math.Ceil(float64(inputLen) * threshold))
-		}
-	})
+		// match
+		{name: "prefix full size", args: args{input: "abcdef", prefixLength: 6}, wantList: refs[0:1]},
+		{name: "prefix partial", args: args{input: "abcdef", prefixLength: 2}, wantList: refs[0:1]},
 
-	if ceilA != ceilB {
-		b.Errorf("Implementation failure, a:%d != b:%d", ceilA, ceilB)
+		// no match
+		{name: "prefix miss-match", args: args{input: "monkey", prefixLength: 6}, wantList: []string{"monkey"}},
+
+		// errors
+		{wantErr: true, name: "len exceeds input", args: args{input: "abc", prefixLength: 6}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			finder, _ := New(refs, func(sug *Finder) {
+				sug.Alg = func(a, b string) float64 {
+					return 1
+				}
+			})
+
+			ctx := context.Background()
+
+			gotList, _, err := finder.FindTopRankingPrefixCtx(ctx, tt.args.input, tt.args.prefixLength)
+			if (err != nil) != tt.wantErr {
+				t1.Errorf("FindTopRankingPrefixCtx() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			// On failure the input is returned.
+			if tt.wantErr {
+				tt.wantList = []string{tt.args.input}
+			}
+
+			if !reflect.DeepEqual(gotList, tt.wantList) {
+				t1.Errorf("FindTopRankingPrefixCtx() gotList = %v, want %v", gotList, tt.wantList)
+			}
+		})
 	}
 }
 
-func BenchmarkSliceOrMap(b *testing.B) {
-	// With sets of more than 20 elements, maps become more efficient. (Not including setup costs)
-	size := 20
-	var hashMap = make(map[int]int, size)
-	var list = make([]int, size)
+func TestFinder_RefreshWithBuckets(t *testing.T) {
+	refs := []string{
+		"aabb",
+		"aabbcc",
+		"aabbccdd",
+		"aabcd",
 
-	for i := size - 1; i > 0; i-- {
-		hashMap[i] = i
-		list[i] = i
+		"bbcc",
+		"bbccdd",
+		"bbccddee",
+		"bbcde",
 	}
 
-	b.Run("Map", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			_ = hashMap[i]
+	finder, _ := New(
+		refs,
+		WithPrefixBuckets(true),
+		WithAlgorithm(func(a, b string) float64 {
+			return BestScoreValue
+		}),
+	)
+
+	t.Run("bucket size", func(t1 *testing.T) {
+		if bl := len(finder.referenceBucket); bl != 2 {
+			t.Errorf("Expecting two buckets got: %d, want: %d", bl, 2)
+
+			for chr := range finder.referenceBucket {
+				t.Logf("Bucket chars: %c", chr)
+			}
+
+			return
 		}
 	})
-	b.Run("List", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			for _, v := range list {
-				_ = v
+
+	t.Run("testing bucket contents", func(t *testing.T) {
+		if finder.bucketChars != 1 {
+			t.Errorf("Expecting only single rune buckets, instead it's %d", finder.bucketChars)
+			return
+		}
+
+		const want = "bbccddee"
+		list := finder.referenceBucket[rune(want[0])]
+		var match bool
+		for _, v := range list {
+			if v == want {
+				match = true
+				break
 			}
 		}
-	})
-}
 
-func BenchmarkFindWithBucket(b *testing.B) {
-	refs := generateRefs(1000, 20)
-	alg := NewJaroWinkler(.7, 4)
-
-	testRef := generateRef(20)
-	b.ReportAllocs()
-	b.Run("find with bucket", func(b *testing.B) {
-		f, _ := New(refs,
-			WithAlgorithm(alg),
-			WithLengthTolerance(0),
-			WithBuckets(false),
-		)
-
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			f.Find(testRef)
+		if !match {
+			t.Errorf("Expected to find %q in the reference bucket", want)
 		}
 	})
 
-	b.Run("find without bucket", func(b *testing.B) {
-		f, _ := New(refs,
-			WithAlgorithm(alg),
-			WithLengthTolerance(0),
-			WithBuckets(true),
-		)
+	t.Run("testing bucket similarity", func(t *testing.T) {
+		if finder.bucketChars != 1 {
+			t.Errorf("Expecting only single rune buckets, instead it's %d", finder.bucketChars)
+			return
+		}
 
-		b.ResetTimer()
-		for i := 0; i < b.N; i++ {
-			f.Find(testRef)
+		input := "beer"
+		bucketRune := rune(input[0])
+
+		// making the test a bit more robust
+		var want = make([]string, 0)
+		for _, v := range refs {
+			if rune(v[0]) == bucketRune {
+				want = append(want, v)
+			}
+		}
+
+		// due to the very liberal "algorithm", anything matches, as long as the bucket prefix is respected
+		got, _, _, _ := finder.findTopRankingCtx(context.Background(), input, 0)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("Expected the reference bucket to be %+v, instead got: %+v", want, got)
 		}
 	})
 }
 
-func generateRefs(refNum, length uint64) []string {
-	refs := make([]string, refNum)
-	for i := uint64(0); i < refNum; i++ {
-		refs[i] = generateRef(length)
+func TestFinder_GetMatchingPrefix(t *testing.T) {
+	refs := []string{
+		"ada lovelace",
+		"grace hopper",
+		"ida rhodes",
+		"sophie wilson",
+		"aminata sana congo",
+		"mary lou jepsen",
+		"shafi goldwasser",
 	}
 
-	return refs
+	type args struct {
+		prefix string
+		max    uint
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{name: "single", args: args{prefix: "a", max: 1}, want: []string{"ada lovelace"}},
+		{name: "multiple", args: args{prefix: "a", max: 2}, want: []string{"ada lovelace", "aminata sana congo"}},
+		{name: "no max == all", args: args{prefix: "a", max: 0}, want: []string{"ada lovelace", "aminata sana congo"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			sug, _ := New(refs, WithAlgorithm(exampleAlgorithm))
+			got, err := sug.GetMatchingPrefix(context.Background(), tt.args.prefix, tt.args.max)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetMatchingPrefix() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetMatchingPrefix() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	t.Run("Testing context cancellation", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		sug, _ := New(refs, WithPrefixBuckets(true), WithAlgorithm(exampleAlgorithm))
+		list, err := sug.GetMatchingPrefix(ctx, "a", 2)
+
+		if err == nil {
+			t.Errorf("GetMatchingPrefix() error = %v", err)
+		}
+
+		t.Logf("list: %+v", list)
+	})
 }
 
-func generateRef(length uint64) string {
-	const alnum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+func TestFinder_getRefList(t *testing.T) {
 
-	var b = make([]byte, length)
-	for i := uint64(0); i < length; i++ {
-		b[i] = alnum[rand.Intn(len(alnum))]
+	refs := []string{
+		"balloon",
+		"basketball",
+		"sea lion",
+		"celebration",
+		"sunshine",
 	}
-	return string(b)
+
+	tests := []struct {
+		name  string
+		input string
+		want  uint
+	}{
+		// input exists in ref list. With buckets enabled we should see 2 results starting with the same letter
+		{name: "Selecting bucket ref list", input: "balloon", want: 2},
+
+		// no match, the entire list should be returned
+		{name: "Selecting full ref list", input: "lion", want: 5},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sug, err := New(refs, WithPrefixBuckets(true), WithAlgorithm(exampleAlgorithm))
+			if err != nil {
+				t.Errorf("b00m headshot %+v", err)
+			}
+
+			if got := sug.getRefList(tt.input); uint(len(got)) != tt.want {
+				t.Errorf("getRefList() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

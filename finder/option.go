@@ -19,8 +19,12 @@ func WithLengthTolerance(t float64) Option {
 	}
 }
 
-func WithBuckets(enable bool) Option {
+// WithPrefixBuckets splits the reference list into buckets by their first letter. Assuming the first letter is correct this
+// can significantly improve the performance by reducing the size of the list to scan through.
+func WithPrefixBuckets(enable bool) Option {
 	return func(s *Finder) {
-		s.enableBuckets = enable
+		if enable {
+			s.bucketChars = 1
+		}
 	}
 }
