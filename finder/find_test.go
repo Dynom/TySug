@@ -375,3 +375,35 @@ func TestFinder_getRefList(t *testing.T) {
 		})
 	}
 }
+
+func TestFinder_Refresh(t *testing.T) {
+	tests := []struct {
+		name    string
+		refs    []string
+		buckets uint
+	}{
+		// TODO: Add test cases.
+
+		{name: "refs without empties", refs: []string{"a", "b"}, buckets: 2},
+		{name: "refs with empties", refs: []string{"", "a"}, buckets: 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sug, err := New([]string{}, WithPrefixBuckets(true), WithAlgorithm(exampleAlgorithm))
+
+			if err != nil {
+				t.Errorf("Didn't expect construction to fail %v", err)
+				return
+			}
+
+			sug.Refresh(tt.refs)
+			if got := uint(len(sug.referenceBucket)); got != tt.buckets {
+				t.Errorf("Expected %d buckets, instead I got %d", tt.buckets, got)
+
+				t.Logf("Reference Map: %+v", sug.referenceMap)
+				t.Logf("Reference: %+v", sug.reference)
+				t.Logf("Reference Bucket: %+v", sug.referenceBucket)
+			}
+		})
+	}
+}

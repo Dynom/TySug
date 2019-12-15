@@ -87,6 +87,84 @@ func BenchmarkFindWithBucket(b *testing.B) {
 	})
 }
 
+const numToAllocate = 1024 * 1024
+
+var refsCopySrc = make([]string, numToAllocate)
+var refsAppendSrc = make([]string, numToAllocate)
+var refsCopyDst []string
+var refsAppendDst []string
+
+func BenchmarkCopyOrAppend(b *testing.B) {
+	refsCopySrc[0] = "a"
+	refsCopySrc[len(refsCopySrc)-1] = "z"
+	refsAppendSrc[0] = "a"
+	refsAppendSrc[len(refsAppendSrc)-1] = "z"
+
+	b.Run("equal size copy", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			refsCopyDst = make([]string, numToAllocate)
+			copy(refsCopyDst, refsCopySrc)
+		}
+
+		if first, last := refsCopyDst[0], refsCopyDst[len(refsCopyDst)-1]; first != "a" || last != "z" {
+			b.Errorf("result length: %d first and last index value doesn't match: %s - %s", len(refsCopyDst), first, last)
+		}
+	})
+
+	b.Run("equal size append", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			refsAppendDst = append(refsAppendSrc[:0:0], refsAppendSrc...)
+		}
+
+		if first, last := refsAppendDst[0], refsAppendDst[len(refsAppendDst)-1]; first != "a" || last != "z" {
+			b.Errorf("result length: %d first and last index value doesn't match: %s - %s", len(refsAppendDst), first, last)
+		}
+	})
+
+	// "dst smaller copy" can't work, since the result won't contain all items or requires logic which'll make the
+	// implementation slower than an append
+
+	b.Run("dst smaller append", func(b *testing.B) {
+		refsAppendDst = make([]string, int(numToAllocate/2))
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			refsAppendDst = append(refsAppendSrc[:0:0], refsAppendSrc...)
+		}
+
+		if first, last := refsAppendDst[0], refsAppendDst[len(refsAppendDst)-1]; first != "a" || last != "z" {
+			b.Errorf("result length: %d first and last index value doesn't match: %s - %s", len(refsAppendDst), first, last)
+		}
+	})
+
+	b.Run("dst larger copy", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			refsCopyDst = make([]string, numToAllocate*2)
+			copy(refsCopyDst, refsCopySrc)
+
+			// Necessary branch to shrink to the right length
+			if len(refsCopyDst) > len(refsCopySrc) {
+				refsCopyDst = refsCopyDst[:len(refsCopySrc)]
+			}
+		}
+
+		if first, last := refsCopyDst[0], refsCopyDst[len(refsCopyDst)-1]; first != "a" || last != "z" {
+			b.Errorf("result length: %d first and last index value doesn't match: %s - %s", len(refsCopyDst), first, last)
+		}
+	})
+
+	b.Run("dst larger append", func(b *testing.B) {
+		refsAppendDst = make([]string, int(numToAllocate*2))
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			refsAppendDst = append(refsAppendSrc[:0:0], refsAppendSrc...)
+		}
+
+		if first, last := refsAppendDst[0], refsAppendDst[len(refsAppendDst)-1]; first != "a" || last != "z" {
+			b.Errorf("result length: %d first and last index value doesn't match: %s - %s", len(refsAppendDst), first, last)
+		}
+	})
+}
+
 func generateRefs(refNum, length uint64) []string {
 	refs := make([]string, refNum)
 	for i := uint64(0); i < refNum; i++ {

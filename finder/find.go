@@ -54,6 +54,11 @@ func (t *Finder) Refresh(list []string) {
 	rm := make(map[string]struct{}, len(list))
 	rb := make(map[rune][]string, 26)
 	for _, r := range list {
+
+		if r == "" {
+			continue
+		}
+
 		rm[r] = struct{}{}
 
 		// @todo make the bucket prefix length configurable
@@ -67,7 +72,7 @@ func (t *Finder) Refresh(list []string) {
 	}
 
 	t.lock.Lock()
-	t.reference = list
+	t.reference = append(t.reference[:0:0], list...)
 	t.referenceMap = rm
 	t.referenceBucket = rb
 	t.lock.Unlock()
