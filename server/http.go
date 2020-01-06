@@ -14,7 +14,7 @@ import (
 	"net/http/pprof"
 
 	"github.com/sirupsen/logrus"
-	"gopkg.in/tomb.v2"
+	tomb "gopkg.in/tomb.v2"
 )
 
 const maxBodySize = 1 << 20 // 1Mb
@@ -54,7 +54,7 @@ type pprofConfig struct {
 	Prefix string
 }
 
-// Validator is a type to validate a client request, returning a nil errors means all went well.
+// Validator is a type to validate a client request, returning a nil error means all went well.
 type Validator func(TSRequest tySugRequest) error
 
 // TySugServer the HTTP server
@@ -178,7 +178,7 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 		}).Debug("Completed new ranking request")
 
 		if !t.Alive() {
-			ctxLogger.Info("Request got cancelled")
+			ctxLogger.Info("Request got canceled")
 		}
 
 		response, err := json.Marshal(res)
