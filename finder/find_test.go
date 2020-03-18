@@ -410,3 +410,30 @@ func TestFinder_Refresh(t *testing.T) {
 		})
 	}
 }
+
+func TestFinder_Exact(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{want: true, name: "exact match", input: "a"},
+
+		{name: "empty input", input: ""},
+		{name: "not exact input", input: "c"},
+	}
+
+	sug, err := New([]string{"a", "b", "z"}, WithAlgorithm(exampleAlgorithm))
+	if err != nil {
+		t.Errorf("Didn't expect construction to fail %v", err)
+		return
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := sug.Exact(tt.input); got != tt.want {
+				t.Errorf("Exact() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

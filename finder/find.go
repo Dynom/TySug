@@ -78,6 +78,15 @@ func (t *Finder) Refresh(list []string) {
 	t.lock.Unlock()
 }
 
+// Exact returns true if the input is an exact match.
+func (t *Finder) Exact(input string) bool {
+	t.lock.RLock()
+	_, ok := t.referenceMap[input]
+	t.lock.RUnlock()
+
+	return ok
+}
+
 // Find returns the best alternative a score and if it was an exact match or not.
 // Since algorithms can define their own upper-bound, there is no "best" value.
 func (t *Finder) Find(input string) (string, float64, bool) {
