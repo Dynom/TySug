@@ -106,9 +106,11 @@ func (t *Finder) FindTopRankingPrefixCtx(ctx context.Context, input string, pref
 
 // getRefList returns the appropriate list of references. getRefList does not deal with locks!
 func (t *Finder) getRefList(input string) []string {
-	r := rune(input[0])
-	if _, ok := t.referenceBucket[r]; ok {
-		return t.referenceBucket[r]
+	if len(input) > 0 {
+		r := rune(input[0])
+		if _, ok := t.referenceBucket[r]; ok {
+			return t.referenceBucket[r]
+		}
 	}
 
 	return t.reference

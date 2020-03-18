@@ -359,7 +359,10 @@ func TestFinder_getRefList(t *testing.T) {
 		{name: "Selecting bucket ref list", input: "balloon", want: 2},
 
 		// no match, the entire list should be returned
-		{name: "Selecting full ref list", input: "lion", want: 5},
+		{name: "Selecting full ref list on no match", input: "lion", want: 5},
+
+		// no input, the entire list should be returned
+		{name: "Selecting full ref list on empty input", input: "", want: 5},
 	}
 
 	for _, tt := range tests {
