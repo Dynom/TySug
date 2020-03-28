@@ -6,22 +6,55 @@ jobs:
     docker:
       - image: circleci/golang:latest
 
-    working_directory: /home/circleci/TySug
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    environment:
+      - BINARY_NAME: "TySug-linux-amd64"
+      - TEST_RESULTS: "/tmp/test-results"
+
     steps:
       - checkout
       - run: go version
-      - run: for p in GOPATH GOBIN GOROOT; do echo "${p} ${!p}"; done
-      - run: go get -v -t -d ./...
-      - run: curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sudo sh -s -- -b $(go env GOPATH)/bin v1.22.2
-      - run: golangci-lint run
-      - run: go test -test.v -test.cover -test.race -test.coverprofile=coverage.txt -test.covermode=atomic ./... 
-      - run: bash <(curl -s https://codecov.io/bash)
+      - run: mkdir -p ${TEST_RESULTS}
+      - run: go get -u github.com/jstemmer/go-junit-report
+      - run: go get -u ./...
+
+      - run:
+          name: Build
+          command: |
+            TAG=${CIRCLE_TAG:-dev}
+            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o "${TEST_RESULTS}/${BINARY_NAME}" -a -ldflags="-w -s -X main.Version=${TAG}" ./cmd/web
+
+      - run:
+          # Check if we have updates to minor/patch level packages we're explicitly referencing
+          name: Dep check
+          command: |
+            go list -u -f '{{if (and (not (or .Main .Indirect)) .Update)}}{{.Path}}: {{.Version}} -> {{.Update.Version}}{{end}}' -m all 2> /dev/null
+
+      - run:
+          name: Lint
+          command: |
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.24.0
+            golangci-lint run
+
+      - run:
+          name: Test
+          command: |
+            go test -test.v ./... | go-junit-report > ${TEST_RESULTS}/report.xml
+            go test -test.cover ./...
+            go test -test.race ./...
+            go test -test.benchmem -test.run=^$ -bench=. ./...
+
+      - run:
+          name: Codecov upload
+          command: |
+            bash <(curl -s https://codecov.io/bash)
 
   publish-image:
     docker:
       - image: circleci/golang:latest
 
-    working_directory: /home/circleci/TySug
+    #working_directory: /home/circleci/TySug
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
       - run:

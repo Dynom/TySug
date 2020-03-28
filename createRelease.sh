@@ -56,7 +56,7 @@ gox -ldflags "-s -w -X main.Version=${LATEST_TAG}" \
     -osarch="windows/amd64" \
     -rebuild \
     -output "build/{{.Dir}}-${LATEST_TAG}-{{.OS}}-{{.Arch}}/${NAME}" \
-	.
+	./cmd/web
 
 # Archive
 HERE=$(pwd)
