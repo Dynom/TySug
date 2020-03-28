@@ -40,14 +40,14 @@ jobs:
           name: Test
           command: |
             go test -test.v ./... | go-junit-report > ${TEST_RESULTS}/report.xml
-            go test -test.cover ./...
+            go test -test.cover -test.coverprofile=${TEST_RESULTS}/coverage.txt -test.covermode=atomic  ./...
             go test -test.race ./...
             go test -test.benchmem -test.run=^$ -bench=. ./...
 
       - run:
           name: Codecov upload
           command: |
-            bash <(curl -s https://codecov.io/bash)
+            bash <(curl -s https://codecov.io/bash) -v -f ${TEST_RESULTS}/coverage.txt
 
   publish-image:
     docker:
