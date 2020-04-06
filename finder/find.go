@@ -10,9 +10,9 @@ import (
 
 // Finder is the type to find the nearest reference
 type Finder struct {
-	referenceMap    map[string]struct{}
+	referenceMap    referenceMapType
 	reference       []string
-	referenceBucket map[rune][]string
+	referenceBucket referenceBucketType
 	Alg             Algorithm
 	LengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
 	lock            sync.RWMutex
@@ -23,6 +23,9 @@ type Finder struct {
 var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
+
+type referenceMapType map[string]struct{}
+type referenceBucketType map[rune][]string
 
 // These constants hold the value of the lowest and highest possible scores. Compatible with JSON serialization.
 // It's not ideal to mix presentation with business logic but in this instance it was convenient and similarly
@@ -51,8 +54,9 @@ func New(list []string, options ...Option) (*Finder, error) {
 
 // Refresh replaces the internal reference list.
 func (t *Finder) Refresh(list []string) {
-	rm := make(map[string]struct{}, len(list))
-	rb := make(map[rune][]string, 26)
+	rm := make(referenceMapType, len(list))
+	rb := make(referenceBucketType, 26)
+
 	for _, r := range list {
 
 		if r == "" {
@@ -65,14 +69,14 @@ func (t *Finder) Refresh(list []string) {
 		if t.bucketChars > 0 {
 			l := rune(r[0])
 			if _, ok := rb[l]; !ok {
-				rb[l] = make([]string, 0, 128)
+				rb[l] = make([]string, 0, 16)
 			}
 			rb[l] = append(rb[l], r)
 		}
 	}
 
 	t.lock.Lock()
-	t.reference = append(t.reference[:0:0], list...)
+	t.reference = append(t.reference[0:0], list...)
 	t.referenceMap = rm
 	t.referenceBucket = rb
 	t.lock.Unlock()
