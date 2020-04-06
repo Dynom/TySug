@@ -6,6 +6,49 @@ import (
 	"testing"
 )
 
+func BenchmarkRefresh(b *testing.B) {
+	initialRefs := []string{"zjekuraalf", "irsqktljsw", "lavebqqrbg", "oozfqpnsvl", "zbxcijlhsi", "qqpthspmrk", "woxvyehskj", "wzaiegvxcw",
+		"tvdcnodnju", "lnugrvpmtq", "pzpwriltwg", "utadyfzvzk", "tgehqtxmnf", "minfuuzytg", "gicfpqgpot", "dfpqvcrgmv",
+		"zbpxhrwdkz", "ajjjefnapl", "gxxaqeqzhu", "njnfdoxrzx", "spbvavebgx", "vhtrygoulv", "ttfawftqek", "pehivzzdsp",
+	}
+
+	newRefs := []string{"bfzwtgdrny", "wtrpemlhle", "aiirvbdmlv", "tsvjdodfba", "hfzlzvamtz", "vvionkxydg", "jxogoheean", "onisaflgmk",
+		"ffzwzeizsg", "ebayntksly", "kfzcguvnid", "vysjvkvplw", "crdkwxxjbr", "dkafiwdmiy", "sushudfnkq", "onblgyuggq",
+		"czcrrbouvq", "qukpyfwqxb", "ejasnahxzx", "zwjvdnhrfa", "qqexohqgve", "rquqvvdqjx", "mzjiilpwpz", "mlxyxeozye",
+		"fxcckjbsyk", "gpmbrumbqv",
+	}
+
+	combinedRefs := append(initialRefs, newRefs...)
+
+	b.Run("only new refs", func(b *testing.B) {
+		findr, err := New(initialRefs, WithAlgorithm(NewJaroWinklerDefaults()), WithPrefixBuckets(false))
+
+		if err != nil {
+			b.Errorf("Failed setting up test %s", err)
+		}
+
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			findr.Refresh(newRefs)
+		}
+	})
+
+	b.Run("extra refs", func(b *testing.B) {
+		findr, err := New(initialRefs, WithAlgorithm(NewJaroWinklerDefaults()), WithPrefixBuckets(false))
+
+		if err != nil {
+			b.Errorf("Failed setting up test %s", err)
+		}
+
+		b.ReportAllocs()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			findr.Refresh(combinedRefs)
+		}
+	})
+}
+
 // Preventing the compiler to inline
 var ceilA, ceilB int
 
