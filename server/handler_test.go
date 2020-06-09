@@ -133,7 +133,7 @@ func TestCORS(t *testing.T) {
 	resultHeaders := recorder.Result().Header.Get("Access-Control-Allow-Headers")
 
 	if resultOrigin != "*" {
-		t.Errorf("Expected the origin to be a wildcard, since none were white-listed.")
+		t.Errorf("Expected the origin to be a wildcard, since none were allow-listed.")
 		t.Logf("%+v", recorder.Result())
 	}
 
