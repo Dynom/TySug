@@ -72,8 +72,7 @@ func NewJaro() Algorithm {
 		}
 
 		matchDistance = matchDistance/2 - 1
-		aMatches := make([]bool, len(a))
-		bMatches := make([]bool, len(b))
+		matchesCollected := make([]bool, len(a)+len(b))
 
 		var matches float64
 		var transpositions float64
@@ -89,15 +88,15 @@ func NewJaro() Algorithm {
 			}
 
 			for k := start; k < end; k++ {
-				if bMatches[k] {
+				if matchesCollected[k+len(a)] {
 					continue
 				}
 				if a[i] != b[k] {
 					continue
 				}
 
-				aMatches[i] = true
-				bMatches[k] = true
+				matchesCollected[i] = true
+				matchesCollected[k+len(a)] = true
 				matches++
 				break
 			}
@@ -109,11 +108,11 @@ func NewJaro() Algorithm {
 
 		k := 0
 		for i := range a {
-			if !aMatches[i] {
+			if !matchesCollected[i] {
 				continue
 			}
 
-			for !bMatches[k] {
+			for !matchesCollected[k+len(a)] {
 				k++
 			}
 
