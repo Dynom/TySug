@@ -1,6 +1,8 @@
 package finder
 
 import (
+	"math"
+
 	"github.com/alextanhongpin/stringdist"
 	"github.com/xrash/smetrics"
 )
@@ -17,7 +19,22 @@ func NewJaroWinklerDefaults() Algorithm {
 // NewJaroWinkler returns the JaroWinkler algorithm
 func NewJaroWinkler(boostThreshold float64, prefixLength int) Algorithm {
 	return func(a, b string) float64 {
-		return smetrics.JaroWinkler(a, b, boostThreshold, prefixLength)
+		j := NewJaro()(a, b)
+
+		if j <= boostThreshold {
+			return j
+		}
+
+		prefixLength = int(math.Min(float64(len(a)), math.Min(float64(prefixLength), float64(len(b)))))
+
+		var prefixMatch float64
+		for i := 0; i < prefixLength; i++ {
+			if a[i] == b[i] {
+				prefixMatch++
+			}
+		}
+
+		return j + 0.1*prefixMatch*(1.0-j)
 	}
 }
 
@@ -36,7 +53,79 @@ func NewWagnerFischer(insert, delete, substitution int) Algorithm {
 	}
 }
 
-// NewJaro returns the default Jaro algorithm from smetrics
+// NewJaro returns the default Jaro algorithm
+// @see https://rosettacode.org/wiki/Jaro_distance#Go
+//nolint:gocyclo
 func NewJaro() Algorithm {
-	return smetrics.Jaro
+	return func(a, b string) float64 {
+		if len(a) == 0 && len(b) == 0 {
+			return 1
+		}
+
+		if len(a) == 0 || len(b) == 0 {
+			return 0
+		}
+
+		matchDistance := len(a)
+		if len(b) > matchDistance {
+			matchDistance = len(b)
+		}
+
+		matchDistance = matchDistance/2 - 1
+		aMatches := make([]bool, len(a))
+		bMatches := make([]bool, len(b))
+
+		var matches float64
+		var transpositions float64
+		for i := range a {
+			start := i - matchDistance
+			if start < 0 {
+				start = 0
+			}
+
+			end := i + matchDistance + 1
+			if end > len(b) {
+				end = len(b)
+			}
+
+			for k := start; k < end; k++ {
+				if bMatches[k] {
+					continue
+				}
+				if a[i] != b[k] {
+					continue
+				}
+
+				aMatches[i] = true
+				bMatches[k] = true
+				matches++
+				break
+			}
+		}
+
+		if matches == 0 {
+			return 0
+		}
+
+		k := 0
+		for i := range a {
+			if !aMatches[i] {
+				continue
+			}
+
+			for !bMatches[k] {
+				k++
+			}
+
+			if a[i] != b[k] {
+				transpositions++
+			}
+
+			k++
+		}
+
+		return (matches/float64(len(a)) +
+			matches/float64(len(b)) +
+			(matches-(transpositions/2))/matches) / 3
+	}
 }
