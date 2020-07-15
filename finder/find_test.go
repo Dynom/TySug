@@ -334,9 +334,8 @@ func TestFinder_GetMatchingPrefix(t *testing.T) {
 
 		if err == nil {
 			t.Errorf("GetMatchingPrefix() error = %v", err)
+			t.Logf("list: %+v", list)
 		}
-
-		t.Logf("list: %+v", list)
 	})
 }
 

@@ -18,6 +18,8 @@ func NewJaroWinklerDefaults() Algorithm {
 
 // NewJaroWinkler returns the JaroWinkler algorithm
 func NewJaroWinkler(boostThreshold float64, prefixLength int) Algorithm {
+
+	// @see smetrics.Jaro() Duplicated here to reference a different local Jaro implementation
 	return func(a, b string) float64 {
 		j := NewJaro()(a, b)
 
