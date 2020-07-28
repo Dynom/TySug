@@ -56,7 +56,11 @@ func NewWagnerFischer(insert, delete, substitution int) Algorithm {
 }
 
 // NewJaro returns the default Jaro algorithm
-// @see https://rosettacode.org/wiki/Jaro_distance#Go
+// @see Original https://rosettacode.org/wiki/Jaro_distance#Go
+// Relevant discussions: https://github.com/xrash/smetrics/issues/7#issuecomment-664794681
+// Changes over original:
+// - Reduced allocations
+// - Added rounding on the unaligned matches as per: http://www.alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 //nolint:gocyclo
 func NewJaro() Algorithm {
 	return func(a, b string) float64 {
@@ -127,6 +131,6 @@ func NewJaro() Algorithm {
 
 		return (matches/float64(len(a)) +
 			matches/float64(len(b)) +
-			(matches-(transpositions/2))/matches) / 3
+			(matches-math.Floor(transpositions/2))/matches) / 3
 	}
 }

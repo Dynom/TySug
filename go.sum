@@ -40,6 +40,8 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9 h1:w8V9v0qVympSF6GjdjIyeqR7+EVhAF9CBQmkmW7Zw0w=
 github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9/go.mod h1:N3UwUGtsrSj3ccvlPHLoLsHnpR27oXr4ZE984MbSER8=
+github.com/xrash/smetrics v0.0.0-20200723181607-f06e43cca1ab h1:UJJSloV3F3NHvn3mWDJ6s2441UlIzjcyn2YUcEPgL0c=
+github.com/xrash/smetrics v0.0.0-20200723181607-f06e43cca1ab/go.mod h1:N3UwUGtsrSj3ccvlPHLoLsHnpR27oXr4ZE984MbSER8=
 github.com/zikes/sift4 v0.0.0-20151103205100-8e89a8aebc1f h1:uwsos4EwJT8IjkwPbPl78dIoouY41YQt4ocQAAKo5+o=
 github.com/zikes/sift4 v0.0.0-20151103205100-8e89a8aebc1f/go.mod h1:RkT6UOQ/xx22IhYMzJoJsW3eMFc96fptPf6k/0dgncE=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=

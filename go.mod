@@ -9,7 +9,7 @@ require (
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.5.0
-	github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9
+	github.com/xrash/smetrics v0.0.0-20200723181607-f06e43cca1ab
 	github.com/zikes/sift4 v0.0.0-20151103205100-8e89a8aebc1f
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59 // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect

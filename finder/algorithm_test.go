@@ -501,7 +501,7 @@ func TestHomoPhoneJaroImplementations(t *testing.T) {
 		var scores = make([]float64, 4)
 		scores[smetricsJaro] = smetrics.Jaro(a, b)
 		scores[rosettaJaroV0] = RosettaJaroV0(a, b)
-		scores[rosettaJaroV1] = RosettaJaroV1(a, b)
+		scores[rosettaJaroV1] = NewJaro()(a, b)
 		scores[jaroDistanceMasatana] = func() float64 {
 			s, _ := JaroDistanceMasatana(a, b)
 			return s
@@ -525,6 +525,7 @@ func TestHomoPhoneJaroImplementations(t *testing.T) {
 }
 
 func TestJaroImplementations(t *testing.T) {
+	RosettaJaroV1 := NewJaro()
 	for _, tt := range jaroReferenceList {
 		score := NewJaro()(tt.a, tt.b)
 
@@ -670,6 +671,7 @@ func BenchmarkJaroImplementations(b *testing.B) {
 			})
 
 			b.Run("RosettaJaro V1", func(b *testing.B) {
+				RosettaJaroV1 := NewJaro()
 				b.ResetTimer()
 				b.ReportAllocs()
 				for i := 0; i < b.N; i++ {
@@ -711,6 +713,7 @@ func BenchmarkRosettaJaro(b *testing.B) {
 		}
 	})
 	b.Run("Single alloc", func(b *testing.B) {
+		RosettaJaroV1 := NewJaro()
 		b.ReportAllocs()
 		b.ResetTimer()
 
@@ -778,78 +781,6 @@ func RosettaJaroV0(a, b string) float64 {
 		}
 
 		for !bMatches[k] {
-			k++
-		}
-
-		if a[i] != b[k] {
-			transpositions++
-		}
-
-		k++
-	}
-
-	return (matches/float64(len(a)) +
-		matches/float64(len(b)) +
-		(matches-(transpositions/2))/matches) / 3
-}
-
-// @see https://rosettacode.org/wiki/Jaro_distance#Go
-// Changes:
-// - Allocation reduction
-func RosettaJaroV1(a, b string) float64 {
-	if len(a) == 0 && len(b) == 0 {
-		return 1
-	}
-	if len(a) == 0 || len(b) == 0 {
-		return 0
-	}
-	matchDistance := len(a)
-	if len(b) > matchDistance {
-		matchDistance = len(b)
-	}
-
-	matchDistance = matchDistance/2 - 1
-	matchesCollected := make([]bool, len(a)+len(b))
-
-	var matches float64
-	var transpositions float64
-	for i := range a {
-		start := i - matchDistance
-		if start < 0 {
-			start = 0
-		}
-
-		end := i + matchDistance + 1
-		if end > len(b) {
-			end = len(b)
-		}
-
-		for k := start; k < end; k++ {
-			if matchesCollected[k+len(a)] {
-				continue
-			}
-			if a[i] != b[k] {
-				continue
-			}
-
-			matchesCollected[i] = true
-			matchesCollected[k+len(a)] = true
-			matches++
-			break
-		}
-	}
-
-	if matches == 0 {
-		return 0
-	}
-
-	k := 0
-	for i := range a {
-		if !matchesCollected[i] {
-			continue
-		}
-
-		for !matchesCollected[k+len(a)] {
 			k++
 		}
 
