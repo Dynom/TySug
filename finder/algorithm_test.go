@@ -526,27 +526,64 @@ func TestHomoPhoneJaroImplementations(t *testing.T) {
 
 func TestJaroImplementations(t *testing.T) {
 	RosettaJaroV1 := NewJaro()
-	for _, tt := range jaroReferenceList {
-		score := NewJaro()(tt.a, tt.b)
 
-		// Skip the test if the reference has a score of 0
-		if equal(tt.score, 0) && !*flagFailOnReferenceMissMatch {
-			continue
+	t.Run("reference list", func(t *testing.T) {
+		for _, tt := range jaroReferenceList {
+			score := NewJaro()(tt.a, tt.b)
+
+			// Skip the test if the reference has a score of 0
+			if equal(tt.score, 0) && !*flagFailOnReferenceMissMatch {
+				continue
+			}
+
+			if !equal(tt.score, score) {
+				t.Errorf("Expected a score of %f, instead it was %f for input, a: %q, b: %q ", tt.score, score, tt.a, tt.b)
+
+				t.Logf("%q vs. %q", tt.a, tt.b)
+				t.Logf("smetrics.Jaro        %f", smetrics.Jaro(tt.a, tt.b))
+				t.Logf("RosettaJaroV0        %f", RosettaJaroV0(tt.a, tt.b))
+				t.Logf("RosettaJaroV1        %f", RosettaJaroV1(tt.a, tt.b))
+				t.Logf("JaroDistanceMasatana %f", func() float64 {
+					s, _ := JaroDistanceMasatana(tt.a, tt.b)
+					return s
+				}())
+			}
+		}
+	})
+
+	t.Run("specific variants", func(t *testing.T) {
+		variants := []struct {
+			a     string
+			b     string
+			score float64
+		}{
+			{a: "a", b: "b", score: 0},
+			{a: "x", b: "x", score: 1},
 		}
 
-		if !equal(tt.score, score) {
-			t.Errorf("Expected a score of %f, instead it was %f for input, a: %q, b: %q ", tt.score, score, tt.a, tt.b)
+		for _, tt := range variants {
+			score := NewJaro()(tt.a, tt.b)
 
-			t.Logf("%q vs. %q", tt.a, tt.b)
-			t.Logf("smetrics.Jaro        %f", smetrics.Jaro(tt.a, tt.b))
-			t.Logf("RosettaJaroV0        %f", RosettaJaroV0(tt.a, tt.b))
-			t.Logf("RosettaJaroV1        %f", RosettaJaroV1(tt.a, tt.b))
-			t.Logf("JaroDistanceMasatana %f", func() float64 {
-				s, _ := JaroDistanceMasatana(tt.a, tt.b)
-				return s
-			}())
+			// Skip the test if the reference has a score of 0
+			if equal(tt.score, 0) && !*flagFailOnReferenceMissMatch {
+				continue
+			}
+
+			if !equal(tt.score, score) {
+				t.Errorf("Expected a score of %f, instead it was %f for input, a: %q, b: %q ", tt.score, score, tt.a, tt.b)
+
+				t.Logf("%q vs. %q", tt.a, tt.b)
+				t.Logf("smetrics.Jaro        %f", smetrics.Jaro(tt.a, tt.b))
+				t.Logf("RosettaJaroV0        %f", RosettaJaroV0(tt.a, tt.b))
+				t.Logf("RosettaJaroV1        %f", RosettaJaroV1(tt.a, tt.b))
+				t.Logf("JaroDistanceMasatana %f", func() float64 {
+					s, _ := JaroDistanceMasatana(tt.a, tt.b)
+					return s
+				}())
+			}
 		}
-	}
+	})
+
 }
 
 // From: github.com/masatana/go-textdistance

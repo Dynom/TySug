@@ -61,14 +61,15 @@ func NewWagnerFischer(insert, delete, substitution int) Algorithm {
 // Changes over original:
 // - Reduced allocations
 // - Added rounding on the unaligned matches as per: http://www.alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
+// - Added support for 1 character inputs, by making sure the match distances is never negative
 //nolint:gocyclo
 func NewJaro() Algorithm {
 	return func(a, b string) float64 {
-		if len(a) == 0 && len(b) == 0 {
-			return 1
-		}
-
 		if len(a) == 0 || len(b) == 0 {
+			// Both 0 length is considered the same.
+			if a == b {
+				return 1
+			}
 			return 0
 		}
 
@@ -77,7 +78,7 @@ func NewJaro() Algorithm {
 			matchDistance = len(b)
 		}
 
-		matchDistance = matchDistance/2 - 1
+		matchDistance = int(math.Max(0, float64(matchDistance)/2-1))
 		matchesCollected := make([]bool, len(a)+len(b))
 
 		var matches float64
