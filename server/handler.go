@@ -38,13 +38,12 @@ func serviceHandler(l *logrus.Logger, sr ServiceRegistry, validators []Validator
 }
 
 func createRequestIDHandler(h http.Handler) http.HandlerFunc {
-
 	// #nosec G404 -- Ignoring linter errors for using a weak random implementation
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	instanceID := strconv.Itoa(int(rnd.Int31()))
 
 	var requestCounter int
-	var lock = sync.Mutex{}
+	lock := sync.Mutex{}
 	return func(w http.ResponseWriter, r *http.Request) {
 		lock.Lock()
 		requestCounter++

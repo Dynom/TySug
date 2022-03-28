@@ -1,10 +1,9 @@
 package main
 
 import (
-	"testing"
-
 	"fmt"
 	"strings"
+	"testing"
 
 	"github.com/Dynom/TySug/finder"
 	"github.com/xrash/smetrics"
@@ -92,9 +91,9 @@ func TestAlgorithms(t *testing.T) {
 }
 
 func TestMailCheckSimilarity(t *testing.T) {
-	var domains = []string{"google.com", "gmail.com", "emaildomain.com", "comcast.net", "facebook.com", "msn.com"}
+	domains := []string{"google.com", "gmail.com", "emaildomain.com", "comcast.net", "facebook.com", "msn.com"}
 
-	var cases = []struct {
+	cases := []struct {
 		input  string
 		expect string
 	}{
@@ -231,7 +230,6 @@ func ExampleSuggestAlternative() {
 }
 
 func SuggestAlternative(email string, domains []string) (string, float64) {
-
 	i := strings.LastIndex(email, "@")
 	if i <= 0 || i >= len(email) {
 		return email, 0

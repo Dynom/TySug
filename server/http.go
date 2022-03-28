@@ -2,16 +2,12 @@ package server
 
 import (
 	"encoding/json"
-	"net/http"
-
-	"time"
-
+	"errors"
 	"io"
 	"io/ioutil"
-
-	"errors"
-
+	"net/http"
 	"net/http/pprof"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	tomb "gopkg.in/tomb.v2"

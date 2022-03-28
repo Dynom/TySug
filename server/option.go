@@ -1,11 +1,9 @@
 package server
 
 import (
-	"net/http"
-
-	"fmt"
-
 	"errors"
+	"fmt"
+	"net/http"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/rs/cors"

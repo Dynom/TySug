@@ -24,8 +24,10 @@ var (
 	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
 )
 
-type referenceMapType map[string]struct{}
-type referenceBucketType map[rune][]string
+type (
+	referenceMapType    map[string]struct{}
+	referenceBucketType map[rune][]string
+)
 
 // These constants hold the value of the lowest and highest possible scores. Compatible with JSON serialization.
 // It's not ideal to mix presentation with business logic but in this instance it was convenient and similarly
@@ -131,7 +133,6 @@ func (t *Finder) getRefList(input string) []string {
 
 // GetMatchingPrefix returns up to max ref's, that start with the prefix argument
 func (t *Finder) GetMatchingPrefix(ctx context.Context, prefix string, max uint) ([]string, error) {
-
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 
@@ -160,7 +161,7 @@ func (t *Finder) GetMatchingPrefix(ctx context.Context, prefix string, max uint)
 }
 
 func (t *Finder) findTopRankingCtx(ctx context.Context, input string, prefixLength uint) ([]string, float64, bool, error) {
-	var hs = WorstScoreValue
+	hs := WorstScoreValue
 
 	if prefixLength > 0 && uint(len(input)) < prefixLength {
 		return []string{input}, WorstScoreValue, false, errors.New("prefix length exceeds input length")

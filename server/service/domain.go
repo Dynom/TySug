@@ -59,7 +59,7 @@ func (s Service) Find(ctx context.Context, input string) (string, float64, bool)
 
 func algJaroWinkler() finder.Algorithm {
 	return func(a, b string) float64 {
-		var prefixLength = 4
+		prefixLength := 4
 		if al := len(a); al == len(b) && al > 8 {
 			prefixLength = int(math.Round(float64(al) / 1.5))
 		}

@@ -495,10 +495,10 @@ func TestHomoPhoneJaroImplementations(t *testing.T) {
 	)
 
 	for _, tt := range homoPhones {
-		var a = strings.ToLower(tt[0])
-		var b = strings.ToLower(tt[1])
+		a := strings.ToLower(tt[0])
+		b := strings.ToLower(tt[1])
 
-		var scores = make([]float64, 4)
+		scores := make([]float64, 4)
 		scores[smetricsJaro] = smetrics.Jaro(a, b)
 		scores[rosettaJaroV0] = RosettaJaroV0(a, b)
 		scores[rosettaJaroV1] = NewJaro()(a, b)
@@ -507,7 +507,7 @@ func TestHomoPhoneJaroImplementations(t *testing.T) {
 			return s
 		}()
 
-		var tmp = scores[smetricsJaro]
+		tmp := scores[smetricsJaro]
 		for i, score := range scores {
 			if !equal(score, tmp) {
 				t.Errorf("%f != %f testing i %d (a: %q, b: %q)", tmp, score, i, a, b)
@@ -583,7 +583,6 @@ func TestJaroImplementations(t *testing.T) {
 			}
 		}
 	})
-
 }
 
 // From: github.com/masatana/go-textdistance
@@ -688,9 +687,7 @@ func BenchmarkJaroImplementations(b *testing.B) {
 	}
 
 	for _, set := range sets {
-
 		b.Run(fmt.Sprintf("%q %q", set.a, set.b), func(b *testing.B) {
-
 			b.Run("JaroDistanceMasatana", func(b *testing.B) {
 				b.ResetTimer()
 				b.ReportAllocs()

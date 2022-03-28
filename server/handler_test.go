@@ -1,16 +1,14 @@
 package server
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
-
-	"bytes"
-	"encoding/json"
-
-	"strings"
 
 	"github.com/sirupsen/logrus/hooks/test"
 )
@@ -39,7 +37,6 @@ func TestServiceHandlerHappyFlow(t *testing.T) {
 		expect := tySugResponse{Result: "bar"}
 		var result tySugResponse
 		err := json.Unmarshal(recorder.Body.Bytes(), &result)
-
 		if err != nil {
 			t.Errorf("unexpected error while unmarshalling the response type %s", err)
 		}
@@ -162,8 +159,8 @@ func BenchmarkRequestIDGeneration(b *testing.B) {
 	})
 
 	b.Run("buffer", func(b *testing.B) {
-		var buf = strings.Builder{}
-		var lock = sync.Mutex{}
+		buf := strings.Builder{}
+		lock := sync.Mutex{}
 		var result string
 		b.ReportAllocs()
 		b.ResetTimer()
@@ -182,7 +179,7 @@ func BenchmarkRequestIDGeneration(b *testing.B) {
 
 	b.Run("buffer custom", func(b *testing.B) {
 		var buf []byte
-		var lock = sync.Mutex{}
+		lock := sync.Mutex{}
 		var result string
 		b.ReportAllocs()
 		b.ResetTimer()
@@ -201,8 +198,8 @@ func BenchmarkRequestIDGeneration(b *testing.B) {
 
 	// The fastest (for short strings) and simplest solution
 	b.Run("string", func(b *testing.B) {
-		var foo = "1228958371"
-		var lock = sync.Mutex{}
+		foo := "1228958371"
+		lock := sync.Mutex{}
 		var result string
 
 		b.ReportAllocs()
@@ -217,8 +214,7 @@ func BenchmarkRequestIDGeneration(b *testing.B) {
 	})
 }
 
-type noopHandler struct {
-}
+type noopHandler struct{}
 
 func (noopHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
