@@ -7,12 +7,14 @@ import (
 )
 
 func BenchmarkRefresh(b *testing.B) {
-	initialRefs := []string{"zjekuraalf", "irsqktljsw", "lavebqqrbg", "oozfqpnsvl", "zbxcijlhsi", "qqpthspmrk", "woxvyehskj", "wzaiegvxcw",
+	initialRefs := []string{
+		"zjekuraalf", "irsqktljsw", "lavebqqrbg", "oozfqpnsvl", "zbxcijlhsi", "qqpthspmrk", "woxvyehskj", "wzaiegvxcw",
 		"tvdcnodnju", "lnugrvpmtq", "pzpwriltwg", "utadyfzvzk", "tgehqtxmnf", "minfuuzytg", "gicfpqgpot", "dfpqvcrgmv",
 		"zbpxhrwdkz", "ajjjefnapl", "gxxaqeqzhu", "njnfdoxrzx", "spbvavebgx", "vhtrygoulv", "ttfawftqek", "pehivzzdsp",
 	}
 
-	newRefs := []string{"bfzwtgdrny", "wtrpemlhle", "aiirvbdmlv", "tsvjdodfba", "hfzlzvamtz", "vvionkxydg", "jxogoheean", "onisaflgmk",
+	newRefs := []string{
+		"bfzwtgdrny", "wtrpemlhle", "aiirvbdmlv", "tsvjdodfba", "hfzlzvamtz", "vvionkxydg", "jxogoheean", "onisaflgmk",
 		"ffzwzeizsg", "ebayntksly", "kfzcguvnid", "vysjvkvplw", "crdkwxxjbr", "dkafiwdmiy", "sushudfnkq", "onblgyuggq",
 		"czcrrbouvq", "qukpyfwqxb", "ejasnahxzx", "zwjvdnhrfa", "qqexohqgve", "rquqvvdqjx", "mzjiilpwpz", "mlxyxeozye",
 		"fxcckjbsyk", "gpmbrumbqv",
@@ -22,7 +24,6 @@ func BenchmarkRefresh(b *testing.B) {
 
 	b.Run("only new refs", func(b *testing.B) {
 		findr, err := New(initialRefs, WithAlgorithm(NewJaroWinklerDefaults()), WithPrefixBuckets(false))
-
 		if err != nil {
 			b.Errorf("Failed setting up test %s", err)
 		}
@@ -36,7 +37,6 @@ func BenchmarkRefresh(b *testing.B) {
 
 	b.Run("extra refs", func(b *testing.B) {
 		findr, err := New(initialRefs, WithAlgorithm(NewJaroWinklerDefaults()), WithPrefixBuckets(false))
-
 		if err != nil {
 			b.Errorf("Failed setting up test %s", err)
 		}
@@ -75,8 +75,8 @@ func BenchmarkCeilOrNoCeil(b *testing.B) {
 func BenchmarkSliceOrMap(b *testing.B) {
 	// With sets of more than 20 elements, maps become more efficient. (Not including setup costs)
 	size := 20
-	var hashMap = make(map[int]int, size)
-	var list = make([]int, size)
+	hashMap := make(map[int]int, size)
+	list := make([]int, size)
 
 	for i := size - 1; i > 0; i-- {
 		hashMap[i] = i
@@ -132,10 +132,12 @@ func BenchmarkFindWithBucket(b *testing.B) {
 
 const numToAllocate = 1024 * 1024
 
-var refsCopySrc = make([]string, numToAllocate)
-var refsAppendSrc = make([]string, numToAllocate)
-var refsCopyDst []string
-var refsAppendDst []string
+var (
+	refsCopySrc   = make([]string, numToAllocate)
+	refsAppendSrc = make([]string, numToAllocate)
+	refsCopyDst   []string
+	refsAppendDst []string
+)
 
 func BenchmarkCopyOrAppend(b *testing.B) {
 	refsCopySrc[0] = "a"
@@ -220,7 +222,7 @@ func generateRefs(refNum, length uint64) []string {
 func generateRef(length uint64) string {
 	const alnum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-	var b = make([]byte, length)
+	b := make([]byte, length)
 	for i := uint64(0); i < length; i++ {
 		b[i] = alnum[rand.Intn(len(alnum))]
 	}

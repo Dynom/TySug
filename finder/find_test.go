@@ -76,7 +76,6 @@ func TestContextCancel(t *testing.T) {
 			return 1
 		}
 	})
-
 	if err != nil {
 		t.Errorf("Error when constructing Finder, %s", err)
 	}
@@ -167,7 +166,6 @@ func TestFinder_FindTopRankingPrefixCtx(t *testing.T) {
 		wantList []string
 		wantErr  bool
 	}{
-
 		// match
 		{name: "prefix full size", args: args{input: "abcdef", prefixLength: 6}, wantList: refs[0:1]},
 		{name: "prefix partial", args: args{input: "abcdef", prefixLength: 2}, wantList: refs[0:1]},
@@ -270,7 +268,7 @@ func TestFinder_RefreshWithBuckets(t *testing.T) {
 		bucketRune := rune(input[0])
 
 		// making the test a bit more robust
-		var want = make([]string, 0)
+		want := make([]string, 0)
 		for _, v := range refs {
 			if rune(v[0]) == bucketRune {
 				want = append(want, v)
@@ -312,7 +310,6 @@ func TestFinder_GetMatchingPrefix(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			sug, _ := New(refs, WithAlgorithm(exampleAlgorithm))
 			got, err := sug.GetMatchingPrefix(context.Background(), tt.args.prefix, tt.args.max)
 			if (err != nil) != tt.wantErr {
@@ -340,7 +337,6 @@ func TestFinder_GetMatchingPrefix(t *testing.T) {
 }
 
 func TestFinder_getRefList(t *testing.T) {
-
 	refs := []string{
 		"balloon",
 		"basketball",
@@ -392,7 +388,6 @@ func TestFinder_Refresh(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sug, err := New([]string{}, WithPrefixBuckets(true), WithAlgorithm(exampleAlgorithm))
-
 			if err != nil {
 				t.Errorf("Didn't expect construction to fail %v", err)
 				return

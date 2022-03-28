@@ -1,18 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/BurntSushi/toml"
 
 	"github.com/Dynom/TySug/server"
 	"github.com/Dynom/TySug/server/service"
 	"github.com/sirupsen/logrus"
-
-	"fmt"
-	"io/ioutil"
-
-	"os"
 )
 
 // Version contains the app version, the value is changed during compile time to the appropriate Git tag

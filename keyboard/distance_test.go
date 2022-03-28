@@ -109,7 +109,6 @@ func TestGetDistance(t *testing.T) {
 			t.Errorf("Expected the distance to be %f, instead I got %f\n%v", td.Distance, d, td)
 		}
 	}
-
 }
 
 func TestFindNearestPenaltyScore(t *testing.T) {
@@ -196,7 +195,6 @@ func BenchmarkAccessingStringCharacters(b *testing.B) {
 		}
 		_ = r
 	})
-
 }
 
 func BenchmarkCompByteWithStringIndex(b *testing.B) {

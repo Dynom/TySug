@@ -17,33 +17,30 @@ const missingCharPenalty = 3 // @todo arbitrary penalty, find a proper basis for
 
 type keyGrid map[string]coordinates
 
-var (
-
-	// @todo this design currently ignores the possibility of pressing the shift key while typing
-	// we might want to allow printable symbols with the same coordinates as their un-shifted counterfeit
-	keyboardLayouts = map[Layout][]string{
-		QwertyUS: {
-			"`   1   2   3   4   5   6   7   8   9   0   -   =",
-			"",
-			"",
-			"      q   w   e   r   t   y   u   i   o   p   [   ]   \\",
-			"",
-			"",
-			"       a   s   d   f   g   h   j   k   l   ;   '",
-			"",
-			"",
-			"         z   x   c   v   b   n   m   ,   .   /",
+// @todo this design currently ignores the possibility of pressing the shift key while typing
+// we might want to allow printable symbols with the same coordinates as their un-shifted counterfeit
+var keyboardLayouts = map[Layout][]string{
+	QwertyUS: {
+		"`   1   2   3   4   5   6   7   8   9   0   -   =",
+		"",
+		"",
+		"      q   w   e   r   t   y   u   i   o   p   [   ]   \\",
+		"",
+		"",
+		"       a   s   d   f   g   h   j   k   l   ;   '",
+		"",
+		"",
+		"         z   x   c   v   b   n   m   ,   .   /",
+	},
+	/*
+		"azerty-fr": {
+			"&é\"'(-è çà)=",
+			"azertyuiop $",
+			"qsdfghjklmù*",
+			"<wxcvbn,;:!",
 		},
-		/*
-			"azerty-fr": {
-				"&é\"'(-è çà)=",
-				"azertyuiop $",
-				"qsdfghjklmù*",
-				"<wxcvbn,;:!",
-			},
-		*/
-	}
-)
+	*/
+}
 
 type coordinates struct {
 	X float64
@@ -64,7 +61,7 @@ func New(l Layout) KeyDist {
 
 // FindNearest finds the item in the list that is nearest to the input, based on the keyboard layout
 func (kd KeyDist) FindNearest(input string, list []string) (string, float64) {
-	var bestScore = math.Inf(1)
+	bestScore := math.Inf(1)
 	var result string
 
 	for _, ref := range list {
@@ -110,7 +107,7 @@ func getDistance(a, b coordinates) float64 {
 }
 
 func generateKeyGrid(rows []string) keyGrid {
-	var keyMap = make(keyGrid, len(rows))
+	keyMap := make(keyGrid, len(rows))
 
 	for rowIndex, row := range rows {
 		for column, char := range row {

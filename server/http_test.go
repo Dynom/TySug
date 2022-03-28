@@ -15,7 +15,6 @@ import (
 )
 
 func TestGetRequestFromHTTPRequest(t *testing.T) {
-
 	t.Run("empty payload", func(t *testing.T) {
 		request, err := createStubbedTySugRequest(strings.NewReader("{}"))
 		if err != nil {
@@ -111,7 +110,6 @@ func TestNewHTTP(t *testing.T) {
 }
 
 func TestConfigureProfiler(t *testing.T) {
-
 	t.Run("Testing the WriteTimeout", func(t *testing.T) {
 		s := TySugServer{server: &http.Server{}}
 		configureProfiler(s, http.NewServeMux())
@@ -121,7 +119,6 @@ func TestConfigureProfiler(t *testing.T) {
 	})
 
 	t.Run("Testing if we fall back to /debug/", func(t *testing.T) {
-
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/debug/pprof/", nil)
 
@@ -154,7 +151,6 @@ func TestConfigureProfiler(t *testing.T) {
 }
 
 func TestHeaders(t *testing.T) {
-
 	// Setting up the service registry
 	sr := NewServiceRegistry()
 	log, _ := test.NewNullLogger()
@@ -209,7 +205,6 @@ func TestHeaders(t *testing.T) {
 			t.Errorf("Expecting the test header 'X-Beep' to be defined.")
 		}
 	})
-
 }
 
 func createStubbedTySugRequest(r io.Reader) (tySugRequest, error) {

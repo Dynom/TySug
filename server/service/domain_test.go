@@ -1,11 +1,10 @@
 package service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/Dynom/TySug/finder"
-
-	"context"
 
 	"github.com/sirupsen/logrus/hooks/test"
 )
@@ -22,6 +21,7 @@ func TestNewDomainWithError(t *testing.T) {
 		t.Error("Expecting an error to have been thrown.")
 	}
 }
+
 func TestServiceFindSimilarWords(t *testing.T) {
 	l, _ := test.NewNullLogger()
 
@@ -48,7 +48,8 @@ func TestServiceFindSimilarWords(t *testing.T) {
 
 				// Jaro Winkler doesn't work well on -1 penalties
 				//"bee",
-			}},
+			},
+		},
 		{
 			Expect: "beef",
 			Inputs: []string{
@@ -56,7 +57,8 @@ func TestServiceFindSimilarWords(t *testing.T) {
 			},
 			References: []string{
 				"beef", "been", "beep", "beer", "bees", "beet",
-			}},
+			},
+		},
 	}
 
 	for _, td := range testData {
@@ -96,6 +98,7 @@ func TestCommonTypos(t *testing.T) {
 		}
 	}
 }
+
 func TestExpectations(t *testing.T) {
 	l, _ := test.NewNullLogger()
 
@@ -103,7 +106,6 @@ func TestExpectations(t *testing.T) {
 		Inputs []string
 		Expect string
 	}{
-
 		// These inputs do not match well against the list of domains. This is largely because of the many different
 		// tld's of the Google domains.
 		//{Expect: "google.com", Inputs: []string{"oogle.com", "gogle.com", "goole.com", "google.om"}},
@@ -117,7 +119,8 @@ func TestExpectations(t *testing.T) {
 			"google.cpm", "google.c0m", "google.c9m", "google.con", "google.cok", "google.coj", "googe.com", "googl.com",
 			"googlecom", "google.cm", "google.co", "ogogle.com", "google.com", "gogole.com", "goolge.com", "googel.com",
 			"googl.ecom", "googlec.om", "google.ocm", "google.cmo", "ggoogle.com", "gooogle.com", "gooogle.com",
-			"googgle.com", "googlle.com", "googlee.com", "google..com", "google.ccom", "google.coom", "google.comm"}},
+			"googgle.com", "googlle.com", "googlee.com", "google..com", "google.ccom", "google.coom", "google.comm",
+		}},
 
 		// These inputs do not match well against the list of domains.
 		//{Expect: "netflix.com", Inputs: []string{"etflix.com", "ntflix.com"}},
@@ -152,7 +155,6 @@ func TestExpectations(t *testing.T) {
 
 	svc, _ := NewDomain(domains, l)
 	for _, td := range testData {
-
 		for _, input := range td.Inputs {
 			result, score, _ := svc.Find(context.Background(), input)
 
