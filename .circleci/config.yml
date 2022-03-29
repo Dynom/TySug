@@ -4,7 +4,7 @@ version: 2
 jobs:
   build-and-test:
     docker:
-      - image: cimg/go:latest
+      - image: cimg/go:1.17
 
     environment:
       BINARY_NAME: "TySug-linux-amd64"
