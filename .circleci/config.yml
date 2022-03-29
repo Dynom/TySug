@@ -9,7 +9,7 @@ jobs:
     environment:
       BINARY_NAME: "TySug-linux-amd64"
       TEST_RESULTS: "/tmp/test-results"
-      GOFLAGS: "-buildvcs=false"
+      #GOFLAGS: "-buildvcs=false" # for 1.18
 
 
     steps:
