@@ -4,12 +4,11 @@ version: 2
 jobs:
   build-and-test:
     docker:
-      - image: circleci/golang:latest
+      - image: cimg/go:latest
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     environment:
-      - BINARY_NAME: "TySug-linux-amd64"
-      - TEST_RESULTS: "/tmp/test-results"
+      BINARY_NAME: "TySug-linux-amd64"
+      TEST_RESULTS: "/tmp/test-results"
 
     steps:
       - checkout
@@ -69,7 +68,6 @@ jobs:
                 --build-arg GIT_REF=${CIRCLE_SHA1} \
                 . &&
             docker tag dynom/tysug:${TAG} dynom/tysug:latest
-      - run: #docker login # @todo, figure out how to login, without exposing my creds -_-'
       - run: docker push dynom/tysug
 
 workflows:
