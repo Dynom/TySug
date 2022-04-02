@@ -1,20 +1,19 @@
 module github.com/Dynom/TySug
 
 require (
-	github.com/BurntSushi/toml v0.3.1
+	github.com/BurntSushi/toml v1.0.0
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alextanhongpin/stringdist v0.0.1
-	github.com/c4milo/github-release v1.1.0 // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/mitchellh/gox v1.0.1 // indirect
-	github.com/rs/cors v1.7.0
-	github.com/sirupsen/logrus v1.5.0
-	github.com/xrash/smetrics v0.0.0-20200723181607-f06e43cca1ab
+	github.com/rs/cors v1.8.2
+	github.com/sirupsen/logrus v1.8.1
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673
 	github.com/zikes/sift4 v0.0.0-20151103205100-8e89a8aebc1f
-	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59 // indirect
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
-	golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775 // indirect
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
 )
 
-go 1.13
+require (
+	golang.org/x/net v0.0.0-20220401154927-543a649e0bdd // indirect
+	golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f // indirect
+)
+
+go 1.17
