@@ -21,7 +21,8 @@ type Finder struct {
 
 // Errors
 var (
-	ErrNoAlgorithmDefined = errors.New("no algorithm defined")
+	ErrNoAlgorithmDefined    = errors.New("no algorithm defined")
+	ErrPrefixExceedsInputLen = errors.New("prefix length exceeds input length")
 )
 
 type (
@@ -67,14 +68,16 @@ func (t *Finder) Refresh(list []string) {
 
 		rm[r] = struct{}{}
 
-		// @todo make the bucket prefix length configurable
-		if t.bucketChars > 0 {
-			l := rune(r[0])
-			if _, ok := rb[l]; !ok {
-				rb[l] = make([]string, 0, 16)
-			}
-			rb[l] = append(rb[l], r)
+		if t.bucketChars == 0 {
+			continue
 		}
+
+		// TODO make the bucket prefix length configurable
+		l := rune(r[0])
+		if _, ok := rb[l]; !ok {
+			rb[l] = make([]string, 0, 16)
+		}
+		rb[l] = append(rb[l], r)
 	}
 
 	t.lock.Lock()
@@ -164,7 +167,7 @@ func (t *Finder) findTopRankingCtx(ctx context.Context, input string, prefixLeng
 	hs := WorstScoreValue
 
 	if prefixLength > 0 && uint(len(input)) < prefixLength {
-		return []string{input}, WorstScoreValue, false, errors.New("prefix length exceeds input length")
+		return []string{input}, WorstScoreValue, false, ErrPrefixExceedsInputLen
 	}
 
 	t.lock.RLock()
@@ -210,17 +213,20 @@ func (t *Finder) findTopRankingCtx(ctx context.Context, input string, prefixLeng
 
 // meetsPrefixLengthMatch tests is the strings both match until the specified length. A 0 length returns true
 func meetsPrefixLengthMatch(length uint, input, reference string) bool {
-	if length > 0 {
-		if uint(len(reference)) < length {
-			return false
-		}
-
-		if pi := length - 1; input[0:pi] != reference[0:pi] {
-			return false
-		}
+	if length == 0 {
+		return true
 	}
 
-	return true
+	if uint(len(reference)) < length {
+		return false
+	}
+
+	pi := int(length)
+	if len(input) < pi {
+		pi = len(input)
+	}
+
+	return input[0:pi] == reference[0:pi]
 }
 
 // meetsLengthTolerance checks if the input meets the length tolerance criteria. The percentage is based on `input`
