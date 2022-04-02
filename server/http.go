@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	tomb "gopkg.in/tomb.v2"
+	"gopkg.in/tomb.v2"
 )
 
 const maxBodySize = 1 << 20 // 1Mb
@@ -122,43 +122,49 @@ func configureProfiler(s TySugServer, mux *http.ServeMux) {
 	s.server.WriteTimeout = 31 * time.Second
 }
 
-func createRequestHandler(logger *logrus.Logger, svc Service, validators []Validator) http.HandlerFunc {
+// finalWriter writes toWrite to w and logs any errors to the logger if any defined
+func finalWriter(logger logrus.FieldLogger, w io.Writer, toWrite []byte) {
+	_, err := w.Write(toWrite)
+	if err != nil && logger != nil {
+		logger.WithError(err).Errorf("Failed to write to writer (%d bytes)", len(toWrite))
+	}
+}
+
+// validateRequest returns true if none of the validates reported any errors or false if at least one of them did. All
+// validators run
+func validateRequest(logger logrus.FieldLogger, validators []Validator, r tySugRequest) bool {
+	result := true
+	for _, v := range validators {
+		if vErr := v(r); vErr != nil {
+			logger.WithError(vErr).Error("Request validation failed")
+			result = false
+		}
+	}
+
+	return result
+}
+
+func createRequestHandler(logger logrus.FieldLogger, svc Service, validators []Validator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t, ctx := tomb.WithContext(r.Context())
 
-		ctxLogger := logger.WithFields(logrus.Fields{
+		logger = logger.WithFields(logrus.Fields{
 			"request_id": ctx.Value(CtxRequestID),
 		})
 
 		req, reqErr := getRequestFromHTTPRequest(r)
 		if reqErr != nil {
-			if reqErr == ErrInvalidRequestBody {
-				ctxLogger.Errorf("Missing or invalid request body.")
-			} else {
-				ctxLogger.Errorf("Unable to process HTTP request, %s.", reqErr)
-			}
+			logger.WithError(reqErr).Error("Unable to process HTTP request")
 
 			w.WriteHeader(400)
-			_, writeErr := w.Write([]byte(reqErr.Error()))
-			if writeErr != nil {
-				ctxLogger.Errorf("Error while writing 400 error: %s (original error: %q)", writeErr, reqErr)
-			}
+			finalWriter(logger, w, []byte(reqErr.Error()))
 			return
 		}
 
-		for _, v := range validators {
-			if vErr := v(req); vErr != nil {
-				ctxLogger.WithFields(logrus.Fields{
-					"error": vErr,
-				}).Error("Request validation failed")
-
-				w.WriteHeader(400)
-				_, writeErr := w.Write([]byte("Validation failed."))
-				if writeErr != nil {
-					ctxLogger.Errorf("Error while writing 400 error: %s", writeErr)
-				}
-				return
-			}
+		if !validateRequest(logger, validators, req) {
+			w.WriteHeader(400)
+			finalWriter(logger, w, []byte("Validation failed."))
+			return
 		}
 
 		var res tySugResponse
@@ -166,7 +172,7 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 		start := time.Now()
 		res.Result, res.Score, res.Exact = svc.Find(ctx, req.Input)
 
-		ctxLogger.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"input":       req.Input,
 			"suggestion":  res.Result,
 			"score":       res.Score,
@@ -174,21 +180,17 @@ func createRequestHandler(logger *logrus.Logger, svc Service, validators []Valid
 		}).Debug("Completed new ranking request")
 
 		if !t.Alive() {
-			ctxLogger.Info("Request got canceled")
+			logger.Info("Request got canceled")
 		}
 
 		response, err := json.Marshal(res)
 		if err != nil {
 			w.WriteHeader(500)
-			_, writeErr := w.Write([]byte("unable to marshal result, b00m"))
-			ctxLogger.Errorf("Error while writing 500 error: %s (original marshaling error: %q)", writeErr, err)
+			finalWriter(logger, w, []byte("Unable to marshal result"))
 			return
 		}
 
-		_, err = w.Write(response)
-		if err != nil {
-			ctxLogger.Errorf("Error while writing response: %s", err)
-		}
+		finalWriter(logger, w, response)
 	}
 }
 
