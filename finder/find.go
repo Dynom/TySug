@@ -202,7 +202,8 @@ func (t *Finder) findTopRankingCtx(ctx context.Context, input string, prefixLeng
 		score := t.Alg(input, ref)
 		if score > hs {
 			hs = score
-			sameScore = []string{ref}
+			sameScore = sameScore[0:1]
+			sameScore[0] = ref
 		} else if score == hs {
 			sameScore = append(sameScore, ref)
 		}
