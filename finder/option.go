@@ -19,8 +19,8 @@ func WithLengthTolerance(t float64) Option {
 	}
 }
 
-// WithPrefixBuckets splits the reference list into buckets by their first letter. Assuming the first letter is correct this
-// can significantly improve the performance by reducing the size of the list to scan through.
+// WithPrefixBuckets splits the reference list into buckets by their first letter. At a trade-off that the first
+// character must be correct, this will significantly improve performance as it has a much smaller list to consider
 func WithPrefixBuckets(enable bool) Option {
 	return func(s *Finder) {
 		if enable {

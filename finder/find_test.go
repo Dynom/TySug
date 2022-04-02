@@ -3,9 +3,283 @@ package finder
 import (
 	"context"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 )
+
+var inspirationalRefList = []string{
+	"Waleed Abdalati",
+	"Nerilie Abram",
+	"Ernest Afiesimama",
+	"Myles Allen",
+	"Richard Alley",
+	"Kevin Anderson",
+	"James Annan",
+	"Julie Arblaster",
+	"David Archer",
+	"Svante Arrhenius",
+	"Sallie Baliunas",
+	"Eric J. Barron",
+	"Roger G. Barry",
+	"Robin Bell",
+	"Lennart Bengtsson",
+	"André Berger",
+	"Richard A. Betts",
+	"Jacob Bjerknes",
+	"Vilhelm Bjerknes",
+	"Bert Bolin",
+	"Gerard C. Bond",
+	"Jason Box",
+	"Raymond S. Bradley",
+	"Keith Briffa",
+	"Wallace Smith Broecker",
+	"Harold E. Brooks",
+	"Keith Browning",
+	"Robert Cahalan",
+	"Ken Caldeira",
+	"Guy Stewart Callendar",
+	"Mark Cane",
+	"Anny Cazenave",
+	"Robert D. Cess",
+	"Jule G. Charney",
+	"John Christy",
+	"John A. Church",
+	"Ralph J. Cicerone",
+	"Danielle Claar",
+	"Allison Crimmins",
+	"Harmon Craig",
+	"Paul J. Crutzen",
+	"Heidi Cullen",
+	"Balfour Currie",
+	"Judith Curry",
+	"Willi Dansgaard",
+	"Scott Denning",
+	"Andrew Dessler",
+	"P. C. S. Devara",
+	"Robert E. Dickinson",
+	"Mark Dyurgerov",
+	"Sylvia Earle",
+	"Don Easterbrook",
+	"Tamsin Edwards",
+	"Arnt Eliassen",
+	"Kerry Emanuel",
+	"Matthew England",
+	"Ian G. Enting",
+	"Joe Farman",
+	"Christopher Field",
+	"Eunice Newton Foote",
+	"Piers Forster",
+	"Joseph Fourier",
+	"Jennifer Francis",
+	"Benjamin Franklin",
+	"Chris Freeman",
+	"Eigil Friis-Christensen",
+	"Inez Fung",
+	"Yevgraf Yevgrafovich Fyodorov",
+	"Francis Galton",
+	"Filippo Giorgi",
+	"Peter Gleick",
+	"Kenneth M. Golden",
+	"Natalya Gomez",
+	"Jonathan M. Gregory",
+	"Jean Grove",
+	"Joanna Haigh",
+	"Edmund Halley",
+	"Gordon Hamilton",
+	"James E. Hansen",
+	"Kenneth Hare",
+	"Klaus Hasselmann",
+	"Ed Hawkins",
+	"Katharine Hayhoe",
+	"Gabriele C. Hegerl",
+	"Isaac Held",
+	"Ann Henderson-Sellers",
+	"Ellie Highwood",
+	"David A. Hodell",
+	"Ove Hoegh-Guldberg",
+	"Greg Holland",
+	"Brian Hoskins",
+	"John T. Houghton",
+	"Malcolm K. Hughes",
+	"Mike Hulme",
+	"Thomas Sterry Hunt",
+	"Sherwood Idso",
+	"Eystein Jansen",
+	"Phil Jones",
+	"Jean Jouzel",
+	"Peter Kalmus",
+	"Daniel Kammen",
+	"Thomas R. Karl",
+	"David Karoly",
+	"Charles David Keeling",
+	"Ralph Keeling",
+	"David W. Keith",
+	"Wilfrid George Kendrew",
+	"Gretchen Keppel-Aleks",
+	"Joseph B. Klemp",
+	"Thomas Knutson",
+	"Kirill Y. Kondratyev",
+	"Bronwen Konecky",
+	"Pancheti Koteswaram",
+	"Shen Kuo",
+	"John E. Kutzbach",
+	"Dmitry Lachinov",
+	"Hubert Lamb",
+	"Kurt Lambeck",
+	"Helmut Landsberg",
+	"Christopher Landsea",
+	"Mojib Latif",
+	"Corinne Le Quéré",
+	"Anders Levermann",
+	"Richard Lindzen",
+	"Diana Liverman",
+	"Michael Lockwood",
+	"Edward Norton Lorenz",
+	"Claude Lorius",
+	"James Lovelock",
+	"Amanda Lynch",
+	"Peter Lynch",
+	"Michael MacCracken",
+	"Gordon J. F. MacDonald",
+	"Jerry D. Mahlman",
+	"László Makra",
+	"Syukuro Manabe",
+	"Gordon Manley",
+	"Michael E. Mann",
+	"David Marshall",
+	"Valerie Masson-Delmotte",
+	"Gordon McBean",
+	"James J. McCarthy",
+	"Helen McGregor",
+	"Christopher McKay",
+	"Marcia McNutt",
+	"Carl Mears",
+	"Gerald A. Meehl",
+	"Katrin Meissner",
+	"Sebastian H. Mernild",
+	"Patrick Michaels",
+	"Milutin Milanković",
+	"John F. B. Mitchell",
+	"Fritz Möller",
+	"Mario J. Molina",
+	"Nils-Axel Mörner",
+	"Richard H. Moss",
+	"Richard A. Muller",
+	"R. E. Munn FRSC",
+	"Gerald North",
+	"Hans Oeschger",
+	"Atsumu Ohmura",
+	"Cliff Ollier",
+	"Abraham H. Oort",
+	"Michael Oppenheimer",
+	"Timothy Osborn",
+	"Friederike Otto",
+	"Tim Palmer CBE FRS",
+	"Garth Paltridge",
+	"David E. Parker",
+	"Fyodor Panayev",
+	"Graeme Pearman OA FAAS",
+	"William Richard Peltier",
+	"Jean Robert Petit",
+	"David Phillips OC",
+	"Roger A. Pielke",
+	"Raymond Pierrehumbert",
+	"Andrew Pitman",
+	"Gilbert Plass",
+	"Ian Plimer",
+	"Henry Pollack",
+	"Vicky Pope",
+	"Detlef Quadfasel",
+	"Stefan Rahmstorf",
+	"Veerabhadran Ramanathan",
+	"Michael Raupach",
+	"Maureen Raymo",
+	"David Reay",
+	"Martine Rebetez",
+	"Roger Revelle",
+	"Lewis Fry Richardson",
+	"Eric Rignot",
+	"Alan Robock",
+	"Joseph J. Romm",
+	"Carl-Gustaf Rossby",
+	"Frank Sherwood Rowland",
+	"Cynthia E. Rosenzweig",
+	"William Ruddiman",
+	"Steve Running",
+	"Murry Salby",
+	"Jim Salinger",
+	"Dork Sahagian",
+	"Ben Santer",
+	"Nicola Scafetta",
+	"Hans Joachim Schellnhuber",
+	"David Schindler",
+	"Michael Schlesinger",
+	"William H. Schlesinger",
+	"Gavin A. Schmidt",
+	"Stephen H. Schneider",
+	"Daniel P. Schrag",
+	"Stephen E. Schwartz",
+	"Tom Segalstad",
+	"Wolfgang Seiler",
+	"John H. Seinfeld",
+	"Mark Serreze",
+	"Nicholas Shackleton",
+	"Nir Shaviv",
+	"J. Marshall Shepherd",
+	"Drew Shindell",
+	"Keith Shine",
+	"Jagdish Shukla",
+	"Joanne Simpson",
+	"Fred Singer",
+	"Julia Slingo",
+	"Joseph Smagorinsky",
+	"Susan Solomon",
+	"Richard C. J. Somerville",
+	"Willie Soon",
+	"Kozma Spassky-Avtonomov",
+	"Roy Spencer",
+	"Konrad Steffen",
+	"Will Steffen",
+	"Thomas Stocker",
+	"Hans von Storch",
+	"Peter A. Stott",
+	"Hans E. Suess",
+	"Henrik Svensmark",
+	"Kevin Russel Tate",
+	"Simon Tett",
+	"Peter Thejll",
+	"Peter Thorne",
+	"Liz Thomas",
+	"Lonnie Thompson",
+	"Axel Timmermann",
+	"Micha Tomkiewicz",
+	"Owen Toon",
+	"Kevin E. Trenberth",
+	"Susan Trumbore",
+	"John Tyndall",
+	"Jean-Pascal van Ypersele",
+	"David Vaughan",
+	"Jan Veizer",
+	"Pier Vellinga",
+	"Ricardo Villalba",
+	"Peter Wadhams ScD",
+	"Warren M. Washington",
+	"John Michael Wallace",
+	"Andrew Watson",
+	"Sir Robert Watson",
+	"Betsy Weatherhead",
+	"Andrew J. Weaver",
+	"Harry Wexler",
+	"Penny Whetton",
+	"Tom Wigley",
+	"Josh Willis",
+	"David Wratt",
+	"Donald Wuebbles",
+	"Carl Wunsch",
+	"Olga Zolina",
+	"Eduardo Zorita",
+}
 
 func exampleAlgorithm(a, b string) float64 {
 	if len(a) == 0 || len(b) == 0 {
@@ -430,4 +704,78 @@ func TestFinder_Exact(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_meetsPrefixLengthMatch(t *testing.T) {
+	type args struct {
+		length    uint
+		input     string
+		reference string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "0 skips the line, and will always return true",
+			want: true,
+			args: args{length: 0, input: "foo", reference: "foo"},
+		},
+		{
+			name: "full length",
+			want: true,
+			args: args{length: 3, input: "foo", reference: "foo"},
+		},
+		{
+			name: "input too short",
+			args: args{length: 3, input: "fo", reference: "fee"},
+		},
+		{
+			name: "ref too short",
+			args: args{length: 3, input: "foo", reference: "fo"},
+		},
+		{
+			name: "empty input and ref",
+			args: args{length: 3, input: "", reference: ""},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := meetsPrefixLengthMatch(tt.args.length, tt.args.input, tt.args.reference); got != tt.want {
+				t.Errorf("meetsPrefixLengthMatch() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkFindTopRankingCTXRace(b *testing.B) {
+
+	sort.Strings(inspirationalRefList)
+	f, err := New(
+		inspirationalRefList,
+		WithAlgorithm(exampleAlgorithm),
+		WithLengthTolerance(0),
+		WithPrefixBuckets(false),
+	)
+
+	if err != nil {
+		b.Fatal("Setting up test failed")
+	}
+
+	ctx := context.Background()
+
+	// Validating that we don't have race conditions
+	b.Run("chaos", func(b *testing.B) {
+		b.ReportAllocs()
+		b.ResetTimer()
+		b.SetParallelism(10)
+
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				_, _, _, _ = f.findTopRankingCtx(ctx, "a", 0)
+				f.Refresh(inspirationalRefList)
+			}
+		})
+	})
 }

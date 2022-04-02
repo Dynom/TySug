@@ -114,10 +114,6 @@ func overrideConfigFromEnv(c *Config) {
 	}
 
 	if v, exists := os.LookupEnv("PROFILER_ENABLE"); exists {
-		if v == "true" {
-			c.Server.Profiler.Enable = true
-		} else {
-			c.Server.Profiler.Enable = false
-		}
+		c.Server.Profiler.Enable = v == "true"
 	}
 }

@@ -1,14 +1,18 @@
-FROM golang:1 as build
+FROM golang:1.18 as build
 
 ARG VERSION="dev"
+ENV GOFLAGS="-buildvcs=false"
 
 WORKDIR /TySug
 COPY . .
 
-RUN go test -test.short -test.v -test.race ./...
-RUN CGO_ENABLED=0 GO111MODULE=on go build -v -a -ldflags "-w -X main.Version=${VERSION}" ./cmd/web
+RUN go mod download
+RUN go test -short -v ./...
+RUN CGO_ENABLED=0 go build -trimpath -v -a -ldflags "-w -s -X main.Version=${VERSION}" ./cmd/web
 
-FROM gcr.io/distroless/base as base
+# @see https://github.com/GoogleContainerTools/distroless
+# This base image provides Time Zone data and CA-certificates
+FROM gcr.io/distroless/static:latest as base
 
 FROM scratch
 

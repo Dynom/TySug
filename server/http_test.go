@@ -86,7 +86,6 @@ func TestCreateRequestHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, r)
 
-		t.Logf("Body: %s", w.Body)
 		if w.Code != 400 {
 			t.Errorf("Expected error was thrown\n%+v", w)
 		}

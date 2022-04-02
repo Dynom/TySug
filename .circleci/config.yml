@@ -4,18 +4,19 @@ version: 2
 jobs:
   build-and-test:
     docker:
-      - image: circleci/golang:latest
+      - image: cimg/go:1.17
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     environment:
-      - BINARY_NAME: "TySug-linux-amd64"
-      - TEST_RESULTS: "/tmp/test-results"
+      BINARY_NAME: "TySug-linux-amd64"
+      TEST_RESULTS: "/tmp/test-results"
+      #GOFLAGS: "-buildvcs=false" # for 1.18
+
 
     steps:
       - checkout
       - run: go version
       - run: mkdir -p ${TEST_RESULTS}
-      - run: go get -u github.com/jstemmer/go-junit-report
+      - run: go install github.com/jstemmer/go-junit-report@latest
       - run: go mod download all
 
       - run:
@@ -33,16 +34,16 @@ jobs:
       - run:
           name: Lint
           command: |
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.24.0
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.44.2
             golangci-lint run
 
       - run:
           name: Test
           command: |
-            go test -test.v ./... | go-junit-report > ${TEST_RESULTS}/report.xml
-            go test -test.cover -test.coverprofile=${TEST_RESULTS}/coverage.txt -test.covermode=atomic  ./...
-            go test -test.race ./...
-            go test -test.benchmem -test.run=^$ -bench=. ./...
+            go test -v ./... | go-junit-report > ${TEST_RESULTS}/report.xml
+            go test -cover -coverprofile=${TEST_RESULTS}/coverage.txt -covermode=atomic  ./...
+            go test -race ./...
+            go test -benchmem -run=^$ -bench=. ./...
 
       - store_test_results:
           path: "/tmp/test-results"
@@ -56,8 +57,6 @@ jobs:
     docker:
       - image: circleci/golang:latest
 
-    #working_directory: /home/circleci/TySug
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
       - run:
@@ -69,7 +68,6 @@ jobs:
                 --build-arg GIT_REF=${CIRCLE_SHA1} \
                 . &&
             docker tag dynom/tysug:${TAG} dynom/tysug:latest
-      - run: #docker login # @todo, figure out how to login, without exposing my creds -_-'
       - run: docker push dynom/tysug
 
 workflows:
