@@ -4,7 +4,7 @@
 
 [linters-settings]
     [linters-settings.gocognit]
-        min-complexity = 12
+        min-complexity = 20
 
     [linters-settings.gofumpt]
         lang-version = "1.17"
