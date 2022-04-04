@@ -16,7 +16,7 @@ Which is useful in helping to prevent typos in e.g. e-mail addresses, detect spa
 The goal is to provide an extensible library that helps with finding possible spelling errors. You can use it 
 out-of-the-box as a library, a webservice or as a set of packages to build your own application.
 
-Currently it's a fairly naive approach and not (yet) backed by ML.
+Currently, it's a fairly naive approach and not (yet) backed by ML.
 
 
 # Using TySug
@@ -97,7 +97,7 @@ Sources:
 
 ### Dealing with confidence
 
-When adding your own algorithm, you'll need to handle the "confidence" element yourself. By default TySug's finder will 
+When adding your own algorithm, you'll need to handle the "confidence" element yourself. By default, TySug's finder will 
 handle it just fine, but depending on the scale the algorithm uses you'll need to either normalize the scale or deal 
 with the score. 
 
@@ -126,9 +126,9 @@ bestMatch, score := sug.Find(input)
 // Here score might be 0.8 for a string of length 10, with 2 mutations
 ```
 
-Without converting the scale, you'll have no bias, however you need to deal with a range where closer to 0 means less changes:
+Without converting the scale, you'll have no bias, however you need to deal with a range where closer to 0 means fewer changes:
 ```go
-// typically produces a range from (-1 * maximumInputLength) to 0
+// This'll produce a range from (-1 * maximumInputLength) to 0
 return -1 * score
 ```
 # Details
@@ -145,7 +145,7 @@ Large is relative. The size is strongly related to the processing time, longer l
 ### Case-sensitivity
 
 TySug does not normalise words. This means that words are treated in a case-sensitive matter. This is done mostly to
-avoid doing unnecessary work in the hot-path. Typically you'll want to make sure both your lists and your input uses the
+avoid doing unnecessary work in the hot-path. Typically, you'll want to make sure both your lists and your input uses the
 same casing.
 
 ### Ordering
@@ -174,7 +174,7 @@ To help people avoid submitting an incorrect e-mail address, one could try the f
 ```go
 func SuggestAlternative(email string, domains []string) (string, float64) {
     i := strings.LastIndex(email, "@")
-    if i <= 0 || i >= len(email) {
+    if 0 >= i || i >= len(email) {
         return email, 0
     }
 
