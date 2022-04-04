@@ -779,3 +779,27 @@ func BenchmarkFindTopRankingCTXRace(b *testing.B) {
 		})
 	})
 }
+
+func BenchmarkFindTopRankingCTX(b *testing.B) {
+
+	sort.Strings(inspirationalRefList)
+	f, err := New(
+		inspirationalRefList,
+		WithAlgorithm(exampleAlgorithm),
+		WithLengthTolerance(0),
+		WithPrefixBuckets(false),
+	)
+
+	if err != nil {
+		b.Fatal("Setting up test failed")
+	}
+
+	ctx := context.Background()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_, _, _, _ = f.findTopRankingCtx(ctx, "a", 0)
+	}
+}
