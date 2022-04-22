@@ -753,7 +753,7 @@ func BenchmarkFindTopRankingCTXRace(b *testing.B) {
 
 	sort.Strings(inspirationalRefList)
 	f, err := New(
-		inspirationalRefList,
+		inspirationalRefList[0:5],
 		WithAlgorithm(exampleAlgorithm),
 		WithLengthTolerance(0),
 		WithPrefixBuckets(false),
@@ -784,7 +784,7 @@ func BenchmarkFindTopRankingCTX(b *testing.B) {
 
 	sort.Strings(inspirationalRefList)
 	f, err := New(
-		inspirationalRefList,
+		inspirationalRefList[0:5],
 		WithAlgorithm(exampleAlgorithm),
 		WithLengthTolerance(0),
 		WithPrefixBuckets(false),

@@ -5,7 +5,8 @@ import (
 	"errors"
 	"math"
 	"strings"
-	"sync"
+
+	"github.com/Dynom/TySug/internal/rwc"
 )
 
 // Finder is the type to find the nearest reference
@@ -15,7 +16,7 @@ type Finder struct {
 	referenceBucket referenceBucketType
 	Alg             Algorithm
 	LengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
-	lock            sync.RWMutex
+	lock            *rwc.RWCMutex
 	bucketChars     uint // @todo figure out what (type of) bucket approach to take. Prefix or perhaps using an ngram/trie approach
 }
 
@@ -40,7 +41,9 @@ const (
 
 // New creates a new instance of Finder. The order of the list is significant
 func New(list []string, options ...Option) (*Finder, error) {
-	i := &Finder{}
+	i := &Finder{
+		lock: rwc.New(),
+	}
 
 	for _, o := range options {
 		o(i)
@@ -96,7 +99,7 @@ func (t *Finder) Exact(input string) bool {
 	return ok
 }
 
-// Find returns the best alternative a score and if it was an exact match or not.
+// Find returns the best alternative, score and if it was an exact match or not.
 // Since algorithms can define their own upper-bound, there is no "best" value.
 func (t *Finder) Find(input string) (string, float64, bool) {
 	matches, score, exact := t.FindTopRankingCtx(context.Background(), input)
