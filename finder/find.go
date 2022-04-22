@@ -99,7 +99,7 @@ func (t *Finder) Exact(input string) bool {
 	return ok
 }
 
-// Find returns the best alternative a score and if it was an exact match or not.
+// Find returns the best alternative, score and if it was an exact match or not.
 // Since algorithms can define their own upper-bound, there is no "best" value.
 func (t *Finder) Find(input string) (string, float64, bool) {
 	matches, score, exact := t.FindTopRankingCtx(context.Background(), input)
