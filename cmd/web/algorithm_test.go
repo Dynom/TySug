@@ -90,6 +90,8 @@ func TestAlgorithms(t *testing.T) {
 	}
 }
 
+// TestMailCheckSimilarity is a never failing test, used to illustrate
+// the different behaviour between Mailcheck.js and TySug.
 func TestMailCheckSimilarity(t *testing.T) {
 	domains := []string{"google.com", "gmail.com", "emaildomain.com", "comcast.net", "facebook.com", "msn.com"}
 
@@ -113,7 +115,7 @@ func TestMailCheckSimilarity(t *testing.T) {
 		{input: "test@randomsmallcompany.cmo", expect: "randomsmallcompany.com"},
 		{input: "test@con-artists.con", expect: "con-artists.com"},
 
-		// These don't result in the same, since the domains aren't know
+		// These don't result in the same, since the domains aren't known
 		{input: "test@homail.con", expect: "hotmail.com"},
 		{input: "test@yajoo.com", expect: "yahoo.com"},
 	}
@@ -122,11 +124,9 @@ func TestMailCheckSimilarity(t *testing.T) {
 	for _, tc := range cases {
 
 		// Normalizing the input, only extracting the domain
-		var domain string
+		domain := tc.input
 		if o := strings.LastIndex(tc.input, "@"); o >= 0 {
 			domain = tc.input[1+o:]
-		} else {
-			domain = tc.input
 		}
 
 		domain = strings.ToLower(domain)
