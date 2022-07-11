@@ -93,14 +93,14 @@ func (kd KeyDist) CalculateDistance(input, ref string) float64 {
 		}
 
 		left, right := input[i:i+1], ref[i:i+1]
-		score += getDistance(kd.grid[left], kd.grid[right])
+		score += euclideanDistance(kd.grid[left], kd.grid[right])
 
 	}
 
 	return score
 }
 
-func getDistance(a, b coordinates) float64 {
+func euclideanDistance(a, b coordinates) float64 {
 	return math.Sqrt(
 		math.Pow(b.X-a.X, 2) + math.Pow(b.Y-a.Y, 2),
 	)
