@@ -103,7 +103,7 @@ func TestGetDistance(t *testing.T) {
 	}
 
 	for _, td := range testData {
-		d := getDistance(td.A, td.B)
+		d := euclideanDistance(td.A, td.B)
 
 		if math.Abs(d-td.Distance) > floatTolerance {
 			t.Errorf("Expected the distance to be %f, instead I got %f\n%v", td.Distance, d, td)
