@@ -25,7 +25,7 @@ You can use TySug as stand-alone webservice to match against a known-list. If yo
 
 ## TL;DR
 
-If you have Docker, just run:
+If you have Docker installed, and you quickly want to tinker, just run:
 
 ```bash
 docker run --rm -it dynom/tysug:latest
@@ -90,7 +90,7 @@ Possible considerations:
  - [Jaccard](https://en.wikipedia.org/wiki/Jaccard_index)
  - [Jaro / Jaro-Winkler](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
  - [Smith-Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm)
- - [Sift4](https://siderite.blogspot.com/2014/11/super-fast-and-accurate-string-distance.html) (used in [mailcheck.js](https://github.com/mailcheck/mailcheck))
+ - [Sift4](https://siderite.dev/blog/super-fast-and-accurate-string-distance.html) (used in [mailcheck.js](https://github.com/mailcheck/mailcheck))
  
 Sources:
  - [joyofdata.de/blog/comparison-of-string-distance-algorithms/](https://www.joyofdata.de/blog/comparison-of-string-distance-algorithms/)
@@ -110,11 +110,9 @@ var someAlgorithm finder.AlgWrapper = func(a, b string) float64 {
     score := someAlgorithm.CalculateDistance(a, b)
     
     // Finding the longest string
-    var ml int
+    var ml = len(b)
     if len(a) >= len(b) {
         ml = len(a)
-    } else {
-        ml = len(b)
     }
     
     // This introduces a bias. Inputs of longer lengths get a slight favour over shorter ones, causing deletions to weigh less.
@@ -128,7 +126,7 @@ bestMatch, score := sug.Find(input)
 
 Without converting the scale, you'll have no bias, however you need to deal with a range where closer to 0 means fewer changes:
 ```go
-// This'll produce a range from (-1 * maximumInputLength) to 0
+// This will produce a range from (-1 * maximumInputLength) to 0
 return -1 * score
 ```
 # Details
