@@ -12,10 +12,7 @@ import (
 func TestNewDomainWithError(t *testing.T) {
 	log, _ := test.NewNullLogger()
 
-	_, err := NewDomain([]string{}, log, func(sug *finder.Finder) {
-		// Triggering the error in Finder
-		sug.Alg = nil
-	})
+	_, err := NewDomain([]string{}, log, finder.WithAlgorithm(nil))
 
 	if err == nil {
 		t.Error("Expecting an error to have been thrown.")

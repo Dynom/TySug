@@ -345,7 +345,7 @@ func TestNoInput(t *testing.T) {
 
 func TestContextCancel(t *testing.T) {
 	sug, err := New([]string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m"}, func(sug *Finder) {
-		sug.Alg = func(a, b string) float64 {
+		sug.algorithm = func(a, b string) float64 {
 			time.Sleep(10 * time.Millisecond)
 			return 1
 		}
@@ -453,7 +453,7 @@ func TestFinder_FindTopRankingPrefixCtx(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t1 *testing.T) {
 			finder, _ := New(refs, func(sug *Finder) {
-				sug.Alg = func(a, b string) float64 {
+				sug.algorithm = func(a, b string) float64 {
 					return 1
 				}
 			})
@@ -750,7 +750,6 @@ func Test_meetsPrefixLengthMatch(t *testing.T) {
 }
 
 func BenchmarkFindTopRankingCTXRace(b *testing.B) {
-
 	sort.Strings(inspirationalRefList)
 	f, err := New(
 		inspirationalRefList[0:5],
@@ -758,7 +757,6 @@ func BenchmarkFindTopRankingCTXRace(b *testing.B) {
 		WithLengthTolerance(0),
 		WithPrefixBuckets(false),
 	)
-
 	if err != nil {
 		b.Fatal("Setting up test failed")
 	}
@@ -781,7 +779,6 @@ func BenchmarkFindTopRankingCTXRace(b *testing.B) {
 }
 
 func BenchmarkFindTopRankingCTX(b *testing.B) {
-
 	sort.Strings(inspirationalRefList)
 	f, err := New(
 		inspirationalRefList[0:5],
@@ -789,7 +786,6 @@ func BenchmarkFindTopRankingCTX(b *testing.B) {
 		WithLengthTolerance(0),
 		WithPrefixBuckets(false),
 	)
-
 	if err != nil {
 		b.Fatal("Setting up test failed")
 	}

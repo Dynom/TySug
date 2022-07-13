@@ -14,8 +14,8 @@ type Finder struct {
 	referenceMap    referenceMapType
 	reference       []string
 	referenceBucket referenceBucketType
-	Alg             Algorithm
-	LengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
+	algorithm       Algorithm
+	lengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
 	lock            *rwc.RWCMutex
 	bucketChars     uint // @todo figure out what (type of) bucket approach to take. Prefix or perhaps using an ngram/trie approach
 }
@@ -51,7 +51,7 @@ func New(list []string, options ...Option) (*Finder, error) {
 
 	i.Refresh(list)
 
-	if i.Alg == nil {
+	if i.algorithm == nil {
 		return i, ErrNoAlgorithmDefined
 	}
 
@@ -198,11 +198,11 @@ func (t *Finder) findTopRankingCtx(ctx context.Context, input string, prefixLeng
 		}
 
 		// Test if the input length differs too much from the reference, making it an unlikely typo.
-		if !meetsLengthTolerance(t.LengthTolerance, input, ref) {
+		if !meetsLengthTolerance(t.lengthTolerance, input, ref) {
 			continue
 		}
 
-		score := t.Alg(input, ref)
+		score := t.algorithm(input, ref)
 		if score > hs {
 			hs = score
 			sameScore = sameScore[0:1]
