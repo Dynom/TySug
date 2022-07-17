@@ -36,7 +36,7 @@ func markingTypoReplacer(input string, offset uint) string {
 
 	marking, markingWidth := utf8.DecodeRune([]byte(input[firstIdx+1:]))
 	switch marking {
-	default: // Unrecognised marking, advancing the index
+	default: // Unrecognized marking, advancing the index
 		offset += uint(markerLength)
 
 	case 'H': // Replace a single character to the left
@@ -62,12 +62,4 @@ func markingTypoReplacer(input string, offset uint) string {
 	}
 
 	return markingTypoReplacer(input, offset)
-}
-
-// atLeastZero returns 0 if `i` is negative, or `i` when it's positive
-func atLeastZero(i int) int {
-	if i < 0 {
-		return 0
-	}
-	return i
 }

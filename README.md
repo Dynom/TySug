@@ -212,9 +212,6 @@ Dealing with typos is complicated and heavily context dependent.
 - Using the Web for Language Independent Spellchecking and Autocorrection - [http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/36180.pdf](http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/36180.pdf)
 - Spellchecking by computer - [https://www.dcs.bbk.ac.uk/..roger/spellchecking.html](https://www.dcs.bbk.ac.uk/~roger/spellchecking.html)
 
-# Wishlist
-- Support for [Marking Typos](https://en.wikipedia.org/wiki/Typographical_error#Marking_typos). -- Probably not particularly useful, but seems fun to implement.
-
 # Contributing
 
 First of all: Awesome!
