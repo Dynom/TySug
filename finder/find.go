@@ -11,16 +11,16 @@ import (
 
 // Finder is the type to find the nearest reference
 type Finder struct {
-	referenceMap    referenceMapType
-	reference       []string
-	referenceBucket referenceBucketType
-	algorithm       Algorithm
-	lengthTolerance float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
-	lock            *rwc.RWCMutex
-	bucketChars     uint // @todo figure out what (type of) bucket approach to take. Prefix or perhaps using an ngram/trie approach
+	referenceMap       referenceMapType
+	reference          []string
+	referenceBucket    referenceBucketType
+	algorithm          Algorithm
+	inputPreProcessors []Processor
+	lengthTolerance    float64 // A number between 0.0-1.0 (percentage) to allow for length miss-match, anything outside this is considered not similar. Set to 0 to disable.
+	lock               *rwc.RWCMutex
+	bucketChars        uint // @todo figure out what (type of) bucket approach to take. Prefix or perhaps using an ngram/trie approach
 }
 
-// Errors
 var (
 	ErrNoAlgorithmDefined    = errors.New("no algorithm defined")
 	ErrPrefixExceedsInputLen = errors.New("prefix length exceeds input length")
@@ -171,6 +171,12 @@ func (t *Finder) findTopRankingCtx(ctx context.Context, input string, prefixLeng
 
 	if prefixLength > 0 && uint(len(input)) < prefixLength {
 		return []string{input}, WorstScoreValue, false, ErrPrefixExceedsInputLen
+	}
+
+	if len(t.inputPreProcessors) > 0 {
+		for _, p := range t.inputPreProcessors {
+			input = p(input)
+		}
 	}
 
 	t.lock.RLock()

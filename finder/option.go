@@ -28,3 +28,9 @@ func WithPrefixBuckets(enable bool) Option {
 		}
 	}
 }
+
+func WithPreProcessor(p ...Processor) Option {
+	return func(sug *Finder) {
+		sug.inputPreProcessors = p
+	}
+}
