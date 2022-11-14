@@ -206,8 +206,8 @@ Dealing with typos is complicated and heavily context dependent.
 
 # Further reading
 
-- How Difficult is it to Develop a Perfect Spell-checker? A Cross-linguistic Analysis through Complex Network Approach - [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.146.4390](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.146.4390)
-- Typographical and Orthographical Spelling Error Correction - [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.70.9592](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.70.9592)
+- How Difficult is it to Develop a Perfect Spell-checker? A Cross-linguistic Analysis through Complex Network Approach - [https://aclanthology.org/W07-0212/](https://aclanthology.org/W07-0212/) (_[archive.ph link](https://archive.ph/nppY3)_)
+- Typographical and Orthographical Spelling Error Correction - [https://aclanthology.org/L00-1169/](https://aclanthology.org/L00-1169/) (_[archive.ph link](https://archive.ph/O74pN)_)
 - How to Write a Spelling Corrector - [https://norvig.com/spell-correct.html](https://norvig.com/spell-correct.html)
 - Using the Web for Language Independent Spellchecking and Autocorrection - [http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/36180.pdf](http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/36180.pdf)
 - Spellchecking by computer - [https://www.dcs.bbk.ac.uk/..roger/spellchecking.html](https://www.dcs.bbk.ac.uk/~roger/spellchecking.html)
