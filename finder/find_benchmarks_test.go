@@ -107,7 +107,7 @@ func BenchmarkFindWithBucket(b *testing.B) {
 		f, _ := New(refs,
 			WithAlgorithm(alg),
 			WithLengthTolerance(0),
-			WithPrefixBuckets(false),
+			WithPrefixBuckets(true),
 		)
 
 		b.ResetTimer()
@@ -120,7 +120,7 @@ func BenchmarkFindWithBucket(b *testing.B) {
 		f, _ := New(refs,
 			WithAlgorithm(alg),
 			WithLengthTolerance(0),
-			WithPrefixBuckets(true),
+			WithPrefixBuckets(false),
 		)
 
 		b.ResetTimer()
@@ -166,11 +166,11 @@ func BenchmarkCopyOrAppend(b *testing.B) {
 		}
 	})
 
-	// "dst smaller copy" can't work, since the result won't contain all items or requires logic which'll make the
-	// implementation slower than an append
+	// "dst smaller copy" can't work, since the result won't contain all items or requires logic which makes the
+	// implementation slower then append
 
 	b.Run("dst smaller append", func(b *testing.B) {
-		refsAppendDst = make([]string, int(numToAllocate/2))
+		refsAppendDst = make([]string, numToAllocate/2)
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			refsAppendDst = append(refsAppendSrc[:0:0], refsAppendSrc...)
@@ -198,7 +198,7 @@ func BenchmarkCopyOrAppend(b *testing.B) {
 	})
 
 	b.Run("dst larger append", func(b *testing.B) {
-		refsAppendDst = make([]string, int(numToAllocate*2))
+		refsAppendDst = make([]string, numToAllocate*2)
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			refsAppendDst = append(refsAppendSrc[:0:0], refsAppendSrc...)

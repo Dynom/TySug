@@ -28,7 +28,7 @@ func parallelReader(m RWCMutexer, locked, unlocked, done chan bool) {
 
 func doTestParallelReaders(numReaders, gomaxprocs int) {
 	runtime.GOMAXPROCS(gomaxprocs)
-	var l = New()
+	l := New()
 	locked := make(chan bool)
 	unlocked := make(chan bool)
 	done := make(chan bool)
@@ -91,7 +91,7 @@ func HammerRWCMutex(gomaxprocs, numReaders, iterations int) {
 	runtime.GOMAXPROCS(gomaxprocs)
 	// Number of active readers + 10000 * number of active writers.
 	var activity int32
-	var l = New()
+	l := New()
 	done := make(chan bool)
 	go writer(l, iterations, &activity, done)
 	var i int

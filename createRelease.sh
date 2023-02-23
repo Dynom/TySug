@@ -6,29 +6,29 @@ set -o pipefail -o nounset -o errexit -o errtrace
 ROOT_DIR="$(pwd)"
 while [ ! -d "${ROOT_DIR}/.git" ]; do
 
-    ROOT_DIR="$(dirname ${ROOT_DIR})"
-    if [ "x${ROOT_DIR}" == "x/" ]; then
+    ROOT_DIR="$(dirname "${ROOT_DIR}")"
+    if [[ "x${ROOT_DIR}" == "x/" ]]; then
         echo "Cannot find .git directory, I use that as reference for the commands."
         exit 1
     fi
 done
 
-# Determine our projectname
-NAME="$(basename $(pwd))"
+# Determine our project name
+NAME="$(basename "$(pwd)")"
 
 # Checking if we have any tags to start with, the cid is Git's magical initial repo hash
 TAGS=$(git rev-list --tags --count 4b825dc642cb6eb9a060e54bf8d69288fbee4904)
-if [ ${TAGS} -eq 0 ];
+if [[ "${TAGS}" -eq 0 ]];
 then
 	echo "No tags detected for ${ROOT_DIR}, please create a tag first!"
 	exit 1;
 fi
 
 # Figuring out what tag's we're on
-LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1 4b825dc642cb6eb9a060e54bf8d69288fbee4904))
+LATEST_TAG=$(git describe --tags "$(git rev-list --tags --max-count=1 4b825dc642cb6eb9a060e54bf8d69288fbee4904)")
 PREV_TAG=$(git tag --sort version:refname | tail -2 | head -1 || true)
 
-if [ "x${LATEST_TAG}" == "x" -a "x${PREV_TAG}" == "x" ];
+if [[ "x${LATEST_TAG}" == "x" && "x${PREV_TAG}" == "x" ]];
 then
     echo "No tag has been found?"
     exit 1
@@ -37,7 +37,7 @@ echo "Previous tag is: ${PREV_TAG}"
 echo "Building a release for tag: ${LATEST_TAG}"
 
 # Falling back to the first commit, if we only have one tag
-if [ "x${PREV_TAG}" == "x${LATEST_TAG}" ];
+if [[ "x${PREV_TAG}" == "x${LATEST_TAG}" ]];
 then
     PREV_TAG=$(git rev-list --max-parents=0 HEAD)
 fi
@@ -59,22 +59,32 @@ gox -ldflags "-s -w -X main.Version=${LATEST_TAG}" \
 	./cmd/web
 
 # Archive
-HERE=$(pwd)
-BUILDDIR=${HERE}/build
-for DIR in $(ls build/);
+HERE="$(pwd)"
+BUILD_DIR="${HERE}/build"
+for DIR in "${BUILD_DIR}"/*;
 do
-    OUTDIR="${HERE}/dist"
-    OUTFILENAME="${DIR}.tar.gz"
-    OUTFILE="${OUTDIR}/${OUTFILENAME}"
-    cd ${BUILDDIR}/${DIR} && \
-        tar -czf ${OUTFILE} * && \
-    cd ${OUTDIR} && \
-        shasum -a 512 ${OUTFILENAME} > ${OUTFILE}.sha512
+    BASE="$(basename "${DIR}")"
+    OUT_DIR="${HERE}/dist"
+    OUT_FILE_NAME="${BASE}.tar.gz"
+    OUT_FILE="${OUT_DIR}/${OUT_FILE_NAME}"
+    cd "${DIR}" && \
+        tar -czf "${OUT_FILE}" ./* && \
+    cd "${OUT_DIR}" && \
+        shasum -a 512 "${OUT_FILE_NAME}" > "${OUT_FILE}".sha512
 done
-cd ${HERE}
+cd "${HERE}"
 
 # Building the changelog
 DIFF_REF="${PREV_TAG}..${LATEST_TAG}"
-CHANGELOG="$(printf '# %s\n%s' 'Changelog' "$(git log ${DIFF_REF} --oneline --no-merges --reverse)")"
+CHANGELOG="$(printf '# %s\n%s' 'Changelog' "$(git log "${DIFF_REF}" --oneline --no-merges --reverse)")"
+
 echo "Building the changelog based on these two ref's: '${DIFF_REF}'"
-github-release Dynom/${NAME} ${LATEST_TAG} "$(git rev-parse --abbrev-ref HEAD)" "${CHANGELOG}" 'dist/*';
+ghr -owner "${GITHUB_USERNAME:-Dynom}" \
+    -repository "${GITHUB_REPOSITORY:${NAME}}" \
+    -commitish "$(git rev-parse HEAD)" \
+    -delete \
+    -body "${CHANGELOG}" \
+    "${LATEST_TAG}" \
+    ./dist/
+
+

@@ -61,6 +61,7 @@ func NewWagnerFischer(insert, delete, substitution int) Algorithm {
 // - Reduced allocations
 // - Added rounding on the unaligned matches as per: http://www.alias-i.com/lingpipe/docs/api/com/aliasi/spell/JaroWinklerDistance.html
 // - Added support for 1 character inputs, by making sure the match distances is never negative
+//
 //nolint:gocognit
 func NewJaro() Algorithm {
 	return func(a, b string) float64 {

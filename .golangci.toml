@@ -7,7 +7,7 @@
         min-complexity = 20
 
     [linters-settings.gofumpt]
-        lang-version = "1.17"
+        lang-version = "1.19"
         extra-rules = true
 
     [linters-settings.goconst]
@@ -27,9 +27,7 @@
         "govet",
         "errcheck",
         "unused",
-        "structcheck",
-        "varcheck",
-        "deadcode",
+        "exhaustive",
 
         "stylecheck",
         "gosec",

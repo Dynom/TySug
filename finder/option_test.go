@@ -9,7 +9,7 @@ func TestSetAlgorithm(t *testing.T) {
 
 	sug, err := New([]string{}, WithAlgorithm(veryPositiveAlg))
 
-	if sug.Alg == nil || err == ErrNoAlgorithmDefined {
+	if sug.algorithm == nil || err == ErrNoAlgorithmDefined {
 		t.Errorf("Expected the algorithm to be set")
 	}
 }

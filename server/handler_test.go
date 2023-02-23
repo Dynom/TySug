@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/sirupsen/logrus/hooks/test"
@@ -160,37 +159,32 @@ func BenchmarkRequestIDGeneration(b *testing.B) {
 
 	b.Run("buffer", func(b *testing.B) {
 		buf := strings.Builder{}
-		lock := sync.Mutex{}
+		buf.Grow(256)
 		var result string
 		b.ReportAllocs()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			lock.Lock()
 			buf.Reset()
 			buf.WriteString("1228958371")
 			buf.WriteString("-")
 			buf.WriteString(strconv.Itoa(i))
 			result = buf.String()
-			lock.Unlock()
 		}
 
 		b.Logf("Last request ID is: %s", result)
 	})
 
 	b.Run("buffer custom", func(b *testing.B) {
-		var buf []byte
-		lock := sync.Mutex{}
+		buf := make([]byte, 0, 3)
 		var result string
 		b.ReportAllocs()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			lock.Lock()
-			buf = []byte{}
+			buf = buf[0:0]
 			buf = append(buf, "1228958371"...)
 			buf = append(buf, "-"...)
 			buf = append(buf, strconv.Itoa(i)...)
 			result = string(buf)
-			lock.Unlock()
 		}
 
 		b.Logf("Last request ID is: %s", result)
@@ -199,15 +193,12 @@ func BenchmarkRequestIDGeneration(b *testing.B) {
 	// The fastest (for short strings) and simplest solution
 	b.Run("string", func(b *testing.B) {
 		foo := "1228958371"
-		lock := sync.Mutex{}
 		var result string
 
 		b.ReportAllocs()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			lock.Lock()
 			result = foo + "-" + strconv.Itoa(i)
-			lock.Unlock()
 		}
 
 		b.Logf("Last request ID is: %s", result)
