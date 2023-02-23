@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
 	"time"
@@ -203,7 +202,7 @@ func getRequestFromHTTPRequest(r *http.Request) (tySugRequest, error) {
 		return req, ErrMissingBody
 	}
 
-	b, err := ioutil.ReadAll(io.LimitReader(r.Body, maxSizePlusOne))
+	b, err := io.ReadAll(io.LimitReader(r.Body, maxSizePlusOne))
 	if err != nil {
 		if err == io.EOF {
 			return req, ErrMissingBody

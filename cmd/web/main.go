@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -87,7 +86,7 @@ func main() {
 func buildConfig(fileName string) (Config, error) {
 	c := Config{}
 
-	b, err := ioutil.ReadFile(fileName)
+	b, err := os.ReadFile(fileName)
 	if err != nil {
 		return c, fmt.Errorf("unable to open %q, reason: %s", fileName, err)
 	}
