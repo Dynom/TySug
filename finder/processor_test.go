@@ -122,6 +122,7 @@ func FuzzMarkingTypoReplacer(f *testing.F) {
 		"Nothing to see ha^Here, moving along!",
 		"World Wide Mess^WWeb",
 		"When the Hare eats the ^, or when the ^Eats^WThe^WHare",
+		"⌘",
 	}
 
 	for _, tt := range tests {
