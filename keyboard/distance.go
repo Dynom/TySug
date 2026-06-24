@@ -102,6 +102,8 @@ func (kd KeyDist) CalculateDistance(input, ref string) float64 {
 
 func euclideanDistance(a, b coordinates) float64 {
 	return math.Sqrt(
+		// Prevent QF1005 here.
+		//nolint:staticcheck
 		math.Pow(b.X-a.X, 2) + math.Pow(b.Y-a.Y, 2),
 	)
 }

@@ -122,7 +122,7 @@ func (t *Finder) FindTopRankingCtx(ctx context.Context, input string) ([]string,
 // prefixLength cannot exceed length of input
 func (t *Finder) FindTopRankingPrefixCtx(ctx context.Context, input string, prefixLength uint) (list []string, exact bool, err error) {
 	list, _, exact, err = t.findTopRankingCtx(ctx, input, prefixLength)
-	return
+	return list, exact, err
 }
 
 // getRefList returns the appropriate list of references. getRefList does not deal with locks!
