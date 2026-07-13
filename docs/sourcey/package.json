@@ -1,0 +1,15 @@
+{
+  "name": "tysug-sourcey-docs",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "build": "node ./node_modules/sourcey/dist/cli.js build --config sourcey.config.ts --output ../reference && node fix-base-path.mjs"
+  },
+  "devDependencies": {
+    "consola": "3.4.2",
+    "sourcey": "3.6.5"
+  }
+}

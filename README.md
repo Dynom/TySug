@@ -21,6 +21,10 @@ Currently, it's a fairly naive approach and not (yet) backed by ML.
 
 # Using TySug
 
+The generated [Go API reference](https://tysug.net/docs/reference/) covers the
+library, web service, keyboard models, and runnable examples directly from the
+current source tree.
+
 You can use TySug as stand-alone webservice to match against a known-list. If you have Docker you'll have it up and running in a few minutes. 
 
 ## TL;DR
