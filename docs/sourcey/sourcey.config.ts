@@ -11,8 +11,8 @@ export default defineConfig({
     colors: {
       primary: "#2f855a",
       light: "#48bb78",
-      dark: "#22543d"
-    }
+      dark: "#22543d",
+    },
   },
   navigation: {
     tabs: [
@@ -25,25 +25,25 @@ export default defineConfig({
           mode: "live",
           includeTests: true,
           includeUnexported: false,
-          hideUndocumented: false
-        })
-      }
-    ]
+          hideUndocumented: false,
+        }),
+      },
+    ],
   },
   navbar: {
     links: [
       {
         type: "github",
-        href: "https://github.com/Dynom/TySug"
-      }
-    ]
+        href: "https://github.com/Dynom/TySug",
+      },
+    ],
   },
   footer: {
     links: [
       {
         type: "github",
-        href: "https://github.com/Dynom/TySug"
-      }
-    ]
-  }
+        href: "https://github.com/Dynom/TySug",
+      },
+    ],
+  },
 });
