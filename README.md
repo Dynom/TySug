@@ -93,7 +93,7 @@ Possible considerations:
  - [Sift4](https://siderite.dev/blog/super-fast-and-accurate-string-distance.html) (used in [mailcheck.js](https://github.com/mailcheck/mailcheck))
  
 Sources:
- - [joyofdata.de/blog/comparison-of-string-distance-algorithms/](https://www.joyofdata.de/blog/comparison-of-string-distance-algorithms/)
+ - [joyofdata.de/blog/comparison-of-string-distance-algorithms/ (internet archive)](https://web.archive.org/web/20190116013054/http://www.joyofdata.de/blog/comparison-of-string-distance-algorithms/)
 
 ### Dealing with confidence
 

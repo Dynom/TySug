@@ -1,4 +1,4 @@
-FROM golang:1.18 as build
+FROM golang:1.25 as build
 
 ARG VERSION="dev"
 ENV GOFLAGS="-buildvcs=false"

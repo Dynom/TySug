@@ -30,7 +30,6 @@ func main() {
 	logger.Formatter = &logrus.JSONFormatter{}
 	logger.Out = os.Stdout
 	logger.Level, err = logrus.ParseLevel(config.Server.Log.Level)
-
 	if err != nil {
 		panic(err)
 	}

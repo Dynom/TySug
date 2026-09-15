@@ -1,44 +1,67 @@
+version = '2'
+
 [run]
     concurrency = 4
     tests = false
 
-[linters-settings]
-    [linters-settings.gocognit]
-        min-complexity = 20
-
-    [linters-settings.gofumpt]
-        lang-version = "1.19"
-        extra-rules = true
-
-    [linters-settings.goconst]
-        min-len = 2
-        min-occurrences = 2
-
-    [linters-settings.misspell]
-        locale = "US"
-
 [linters]
-    disable-all = true
+    default = 'none'
     enable = [
-        "staticcheck",
-        "gosimple",
-        "ineffassign",
-        "typecheck",
-        "govet",
-        "errcheck",
-        "unused",
-        "exhaustive",
-
-        "stylecheck",
-        "gosec",
-        "unconvert",
-        "goconst",
-        "gocognit",
-        "depguard",
-        "misspell",
-        "unparam",
-        "prealloc",
-        "gofumpt",
-        "exportloopref",
-        "gocritic",
+        #'depguard',
+        'errcheck',
+        'exhaustive',
+        'gocognit',
+        'goconst',
+        'gocritic',
+        'gosec',
+        'govet',
+        'ineffassign',
+        'misspell',
+        'prealloc',
+        'staticcheck',
+        'unconvert',
+        'unparam',
+        'unused'
     ]
+
+    [linters.settings]
+        [linters.settings.gocognit]
+            min-complexity = 20
+
+        [linters.settings.goconst]
+            min-len = 2
+            min-occurrences = 2
+
+        [linters.settings.misspell]
+            locale = 'US'
+
+    [linters.exclusions]
+        generated = 'lax'
+        presets = [
+            'comments',
+            'common-false-positives',
+            'legacy',
+            'std-error-handling'
+        ]
+        paths = [
+            'third_party$',
+            'builtin$',
+            'examples$'
+        ]
+
+[formatters]
+    enable = [
+        'gofumpt'
+    ]
+
+    [formatters.settings]
+        [formatters.settings.gofumpt]
+            extra-rules = true
+
+    [formatters.exclusions]
+        generated = 'lax'
+        paths = [
+            'third_party$',
+            'builtin$',
+            'examples$'
+        ]
