@@ -1,0 +1,13 @@
+# TySug
+
+> github.com/Dynom/TySug/cmd/web
+
+## Go API
+
+- [cmd/web](/docs/reference/pkg-cmd-web.html): github.com/Dynom/TySug/cmd/web
+- [finder](/docs/reference/pkg-finder.html): github.com/Dynom/TySug/finder
+- [internal/rwc](/docs/reference/pkg-internal-rwc.html): github.com/Dynom/TySug/internal/rwc
+- [keyboard](/docs/reference/pkg-keyboard.html): github.com/Dynom/TySug/keyboard
+- [server](/docs/reference/pkg-server.html): github.com/Dynom/TySug/server
+- [server/service](/docs/reference/pkg-server-service.html): github.com/Dynom/TySug/server/service
+- [Go API](/docs/reference/): github.com/Dynom/TySug
